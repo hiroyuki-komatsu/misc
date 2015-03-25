@@ -31,8 +31,6 @@ appendpath /Developer/usr/bin/
 
 export GTK_IM_MODULE=uim
 export LANG=ja_JP.UTF-8
-# export LANG=ja_JP.eucJP
-# export OUTPUT_CHARSET=EUC-JP
 if [[ $HOST = "omega" ]] then
     export CVSROOT=/home/komatsu/CVS_DB
 else
@@ -42,8 +40,6 @@ fi
 export CVS_RSH=ssh
 
 setopt prompt_subst
-
-# wget -O- 'http://hsb17:10000/varz?var=argv&output=text' | sed 's/ /\n/g' | sort | uniq
 
 check_remote_login() {
   if [[ $SSH_CLIENT = "" ]] then
