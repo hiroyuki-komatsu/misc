@@ -169,3 +169,13 @@ setopt histignoredups append_history share_history
 # source .zshrc-dabbrev
 
 autoload -U compinit; compinit
+
+# For ImageMagick
+appendpath /opt/ImageMagick/bin/
+
+# For Go lang
+appendpath /usr/local/go/bin/
+
+# For AppEngine for Go lang
+appendpath /Users/komatsu/bin/go_appengine
+
