@@ -4,7 +4,10 @@
 import httplib2
 import json
 import os
+import os.path
 import sys
+
+import youtube_auth
 
 from apiclient.discovery import build
 from apiclient.errors import HttpError
@@ -12,56 +15,38 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import argparser, run_flow
 
+NEXT_VIDEO_PLACEHOLDER = u"次: 準備中"
 
-# The CLIENT_SECRETS_FILE variable specifies the name of a file that contains
-# the OAuth 2.0 information for this application, including its client_id and
-# client_secret. You can acquire an OAuth 2.0 client ID and client secret from
-# the Google Developers Console at
-# https://console.developers.google.com/.
-# Please ensure that you have enabled the YouTube Data API for your project.
-# For more information about using OAuth2 to access the YouTube Data API, see:
-#   https://developers.google.com/youtube/v3/guides/authentication
-# For more information about the client_secrets.json file format, see:
-#   https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
-CLIENT_SECRETS_FILE = "client_secrets.json"
+def update_prev_id(youtube, video_id, next_id):
+  # Call the API's videos.list method to retrieve the video resource.
+  videos_list_response = youtube.videos().list(
+    id=video_id,
+    part='snippet'
+  ).execute()
 
-# This OAuth 2.0 access scope allows for full read/write access to the
-# authenticated user's account.
-YOUTUBE_READ_WRITE_SCOPE = "https://www.googleapis.com/auth/youtube"
-YOUTUBE_API_SERVICE_NAME = "youtube"
-YOUTUBE_API_VERSION = "v3"
+  # If the response does not contain an array of "items" then the video was
+  # not found.
+  if not videos_list_response["items"]:
+    print "Video '%s' was not found." % options.video_id
+    return False
 
-# This variable defines a message to display if the CLIENT_SECRETS_FILE is
-# missing.
-MISSING_CLIENT_SECRETS_MESSAGE = """
-WARNING: Please configure OAuth 2.0
+  # Since the request specified a video ID, the response only contains one
+  # video resource. This code extracts the snippet from that resource.
+  videos_list_snippet = videos_list_response["items"][0]["snippet"]
 
-To make this sample run you will need to populate the client_secrets.json file
-found at:
+  videos_list_snippet["description"] = (
+      videos_list_snippet["description"].replace(
+          NEXT_VIDEO_PLACEHOLDER,
+          u"次: https://youtu.be/%s" % next_id))
 
-   %s
-
-with information from the Developers Console
-https://console.developers.google.com/
-
-For more information about the client_secrets.json file format, please visit:
-https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
-""" % os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   CLIENT_SECRETS_FILE))
-
-def get_authenticated_service(args):
-  flow = flow_from_clientsecrets(CLIENT_SECRETS_FILE,
-    scope=YOUTUBE_READ_WRITE_SCOPE,
-    message=MISSING_CLIENT_SECRETS_MESSAGE)
-
-  storage = Storage("%s-oauth2.json" % sys.argv[0])
-  credentials = storage.get()
-
-  if credentials is None or credentials.invalid:
-    credentials = run_flow(flow, storage, args)
-
-  return build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-    http=credentials.authorize(httplib2.Http()))
+  # Update the video resource by calling the videos.update() method.
+  videos_update_response = youtube.videos().update(
+    part='snippet',
+    body=dict(
+      snippet=videos_list_snippet,
+      id=video_id
+    )).execute()
+  return True
 
 def update_video(youtube, video_id, options):
   # Call the API's videos.list method to retrieve the video resource.
@@ -80,9 +65,6 @@ def update_video(youtube, video_id, options):
   # video resource. This code extracts the snippet from that resource.
   videos_list_snippet = videos_list_response["items"][0]["snippet"]
   videos_list_status = videos_list_response["items"][0]["status"]
-
-  print json_dumps(videos_list_status)
-  sys.exit(0)
 
   # Preserve any tags already associated with the video. If the video does
   # not have any tags, create a new array. Append the provided tag to the
@@ -111,24 +93,38 @@ def update_video(youtube, video_id, options):
 
 def json_dumps(json_data):
   return json.dumps(json_data, sort_keys=True, ensure_ascii=False,
-                    indent=2, separators=(',', ': ')).decode('utf-8')
+                    indent=2, separators=(',', ': '))
 
-def parse_file(filename):
+def read_description(description_file):
+  descritpion = u""
+  with open(description_file, "r") as data:
+    for line in data:
+      if line.startswith("IKA"):
+        continue
+      descritpion += unicode(line, "utf-8")
+  return descritpion
+
+def parse_file(filename, video_dir, prev_id = None, unlisted = False):
   update_list = []
   with open(filename, "r") as data:
     for line in data:
-      items = line.rstrip().split("\t")
+      items = unicode(line, "utf-8").rstrip().split("\t")
       if len(items) < 1:
         continue
       options = {}
-      options["video_id"] = items[0]
-      options["title"] = items[1]
-      options["privacyStatus"] = items[2]
-      options["tags"] = ["splatoon", "スプラトゥーン"]
+      options["video_file"] = items[0]
+      options["video_id"] = items[1]
+      options["title"] = items[2]
+      if len(items) > 3:
+        options["privacyStatus"] = items[3]
+      elif unlisted:
+        options["privacyStatus"] = "unlisted"
+      else:
+        options["privacyStatus"] = "public"
+      options["tags"] = ["splatoon", u"スプラトゥーン"]
       update_list.append(options)
 
   for index, value in enumerate(update_list):
-    prev_id = None
     if index != 0:
       prev_id = update_list[index-1]["video_id"]
     next_id = None
@@ -136,34 +132,48 @@ def parse_file(filename):
       next_id = update_list[index+1]["video_id"]
 
     description = ""
-    if prev_id:
-      description += "Prev: https://youtu.be/%s\n" % prev_id
     if next_id:
-      description += "Next: https://youtu.be/%s\n" % next_id
-    value["description"] = description
+      description += u"次: https://youtu.be/%s\n" % next_id
+    else:
+      description += u"%s\n" % NEXT_VIDEO_PLACEHOLDER
+    if prev_id:
+      description += u"前: https://youtu.be/%s\n" % prev_id
+
+    description_file = os.path.join(video_dir, value["video_file"] + ".txt")
+    video_description = read_description(description_file)
+    value["description"] = u"\n".join([description, video_description])
   return update_list
 
 
 if __name__ == "__main__":
   argparser.add_argument("--data", help="Data file.", required=True)
+  argparser.add_argument("--prev_id", help="Previous ID")
+  argparser.add_argument("--video_dir")
+  argparser.add_argument("--unlisted", action="store_true")
   args = argparser.parse_args()
 
-  update_list = parse_file(args.data)
+  update_list = parse_file(args.data, args.video_dir,
+                           prev_id=args.prev_id,
+                           unlisted=args.unlisted)
 
-  youtube = get_authenticated_service(args)
+  youtube = youtube_auth.get_authenticated_service(args)
+
   number = 0
+  if args.prev_id:
+    update_prev_id(youtube, args.prev_id, update_list[0]["video_id"])
+    number += 1
   try:
       for update in update_list:
         video_id = update["video_id"]
         if update_video(youtube, video_id, update):
-          print "Updated https://youtu.be/%s" % video_id
-          print json_dumps(update)
-          print
+          print("Updated https://youtu.be/%s" % video_id)
+          print(json_dumps(update))
+          print('')
         else:
-          print "Error on updating https://youtu.be/%s" % video_id
+          print("Error on updating https://youtu.be/%s" % video_id)
         number += 1
   except HttpError, e:
-    print "An HTTP error %d occurred:" % e.resp.status
-    print json_dumps(e.content)
+    print("An HTTP error %d occurred:" % e.resp.status)
+    print(json_dumps(e.content))
   else:
-    print "Updated %d videos." % number
+    print("Updated %d videos." % number)

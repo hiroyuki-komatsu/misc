@@ -3,96 +3,98 @@
 
 import httplib2
 import os
+import os.path
+import re
 import sys
 
-from apiclient.discovery import build
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.file import Storage
-from oauth2client.tools import argparser, run_flow
+import youtube_auth
 
+from oauth2client.tools import argparser
 
-# The CLIENT_SECRETS_FILE variable specifies the name of a file that contains
-# the OAuth 2.0 information for this application, including its client_id and
-# client_secret. You can acquire an OAuth 2.0 client ID and client secret from
-# the Google Developers Console at
-# https://console.developers.google.com/.
-# Please ensure that you have enabled the YouTube Data API for your project.
-# For more information about using OAuth2 to access the YouTube Data API, see:
-#   https://developers.google.com/youtube/v3/guides/authentication
-# For more information about the client_secrets.json file format, see:
-#   https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
-CLIENT_SECRETS_FILE = "client_secrets.json"
+def get_default_title(filename):
+  filename = re.compile(".mp4|\\(|\\)").sub("", filename)
+  filename = re.compile("[\\.\\-_]").sub(" ", filename)
+  return filename
 
-# This variable defines a message to display if the CLIENT_SECRETS_FILE is
-# missing.
-MISSING_CLIENT_SECRETS_MESSAGE = """
-WARNING: Please configure OAuth 2.0
+def get_video_dict(video_dir):
+  video_dict = {}
+  for filename in os.listdir(video_dir):
+    if filename.endswith('mp4'):
+      video_dict[get_default_title(filename)] = filename
+  return video_dict
 
-To make this sample run you will need to populate the client_secrets.json file
-found at:
-
-   %s
-
-with information from the Developers Console
-https://console.developers.google.com/
-
-For more information about the client_secrets.json file format, please visit:
-https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
-""" % os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   CLIENT_SECRETS_FILE))
-
-# This OAuth 2.0 access scope allows for read-only access to the authenticated
-# user's account, but not other types of account access.
-YOUTUBE_READONLY_SCOPE = "https://www.googleapis.com/auth/youtube.readonly"
-YOUTUBE_API_SERVICE_NAME = "youtube"
-YOUTUBE_API_VERSION = "v3"
-
-flow = flow_from_clientsecrets(CLIENT_SECRETS_FILE,
-  message=MISSING_CLIENT_SECRETS_MESSAGE,
-  scope=YOUTUBE_READONLY_SCOPE)
-
-storage = Storage("%s-oauth2.json" % sys.argv[0])
-credentials = storage.get()
-
-if credentials is None or credentials.invalid:
-  flags = argparser.parse_args()
-  credentials = run_flow(flow, storage, flags)
-
-youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-  http=credentials.authorize(httplib2.Http()))
-
-# Retrieve the contentDetails part of the channel resource for the
-# authenticated user's channel.
-channels_response = youtube.channels().list(
-  mine=True,
-  part="contentDetails"
-).execute()
-
-for channel in channels_response["items"]:
-  # From the API response, extract the playlist ID that identifies the list
-  # of videos uploaded to the authenticated user's channel.
-  uploads_list_id = channel["contentDetails"]["relatedPlaylists"]["uploads"]
-
-  print "Videos in list %s" % uploads_list_id
+def get_playlist(youtube, num=None):
+  max_results = 50
+  if num and num < 50:
+    max_results = num
 
   # Retrieve the list of videos uploaded to the authenticated user's channel.
-  playlistitems_list_request = youtube.playlistItems().list(
-    playlistId=uploads_list_id,
-    part="snippet",
-    maxResults=50
-  )
+  playlist = []
 
-  while playlistitems_list_request:
-    playlistitems_list_response = playlistitems_list_request.execute()
+  # Retrieve the contentDetails part of the channel resource for the
+  # authenticated user's channel.
+  channels_response = youtube.channels().list(
+    mine=True,
+    part="contentDetails"
+  ).execute()
 
-    # Print information about each video.
-    for playlist_item in playlistitems_list_response["items"]:
-      title = playlist_item["snippet"]["title"]
-      video_id = playlist_item["snippet"]["resourceId"]["videoId"]
-      data = u"%s\t%s" % (title, video_id)
-      print data.encode("utf-8")
+  for channel in channels_response["items"]:
+    # From the API response, extract the playlist ID that identifies the list
+    # of videos uploaded to the authenticated user's channel.
+    uploads_list_id = channel["contentDetails"]["relatedPlaylists"]["uploads"]
 
-    playlistitems_list_request = youtube.playlistItems().list_next(
-      playlistitems_list_request, playlistitems_list_response)
+    print "Videos in list %s" % uploads_list_id
+    playlistitems_list_request = youtube.playlistItems().list(
+      playlistId=uploads_list_id,
+      part="snippet",
+      maxResults=max_results
+    )
 
-  print
+    while (num is None) or (num > 0):
+      if not playlistitems_list_request:
+        break
+
+      playlistitems_list_response = playlistitems_list_request.execute()
+
+      # Print information about each video.
+      for playlist_item in playlistitems_list_response["items"]:
+        title = playlist_item["snippet"]["title"]
+        video_id = playlist_item["snippet"]["resourceId"]["videoId"]
+        playlist.append([title, video_id])
+        #print data.encode("utf-8")
+
+        if num:
+          num -= 1
+          if num <= 0:
+            return playlist
+
+      playlistitems_list_request = youtube.playlistItems().list_next(
+        playlistitems_list_request, playlistitems_list_response)
+
+  return playlist
+
+def compose_data(playlist, video_dict, output):
+  with open(output, 'w') as file:
+    for item in reversed(playlist):
+      title, video_id = item
+      video_file = video_dict.get(title, '')
+      line = u'\t'.join([video_file, video_id, title]).encode('utf-8')
+      file.write(line + '\n')
+
+def main():
+  argparser.add_argument("--num", "-n", dest="num",
+                         help="num of videos", type=int)
+  argparser.add_argument("--video_dir")
+  argparser.add_argument("--output_playlist")
+  args = argparser.parse_args()
+
+  video_dict = get_video_dict(args.video_dir)
+
+  youtube = youtube_auth.get_authenticated_service(args)
+
+  playlist = get_playlist(youtube, args.num)
+
+  compose_data(playlist, video_dict, args.output_playlist)
+
+if __name__ == "__main__":
+  main()
