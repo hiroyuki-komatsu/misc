@@ -14,7 +14,7 @@ def normalize_weapon_name(weapon):
   }
   return normalization_dict.get(weapon, weapon)
 
-def process_file(video_file, id=''):
+def process_file(video_file, id='', statink=''):
   # filename looks like splatoon_recording-2015-12-28-00-30-0.mp4.txt
   video = os.path.basename(video_file)
   type = ''
@@ -25,7 +25,7 @@ def process_file(video_file, id=''):
                'ガロン52': 'スプラトゥーン',
                'スプラチャージャー': 'スプラトゥーン チャージャー'}
 
-  data = [video, id, type, date, index]
+  data = [video, id, statink, type, date, index]
   with open(video_file + '.txt') as file:
     # line looks like:
     # "IKA ガチエリア	モンガラキャンプ場	lose	6	7	a+62  a+52	ガロン52"
@@ -33,7 +33,7 @@ def process_file(video_file, id=''):
     if line.startswith('IKA'):
       items = line.strip('\n').split('\t')[1:]
       rule, stage, result, kill, death, rank_before, rank_after, weapon = items
-      data[2] = type_dict.get(weapon, '')  # update type
+      data[3] = type_dict.get(weapon, '')  # update type
       weapon = normalize_weapon_name(weapon)
       rule = rule.replace('ガチホコバトル', 'ガチホコ')
       data += [rule, stage, result.capitalize(), kill, death,
@@ -49,9 +49,10 @@ def main():
 
   with open(args.output_sheet, 'w') as output:
     for item in open(args.playlist):
-      video_file, video_id, title = item.rstrip().split('\t')
+      video_file, video_id, title, statink = item.rstrip().split('\t')
       video_path = os.path.join(args.video_dir, video_file)
-      output.write('\t'.join(process_file(video_path, video_id)) + '\n')
+      output.write('\t'.join(process_file(video_path, video_id, statink)) +
+                   '\n')
 
 if __name__ == "__main__":
   main()

@@ -114,9 +114,10 @@ def parse_file(filename, video_dir, prev_id = None, unlisted = False):
       options = {}
       options["video_file"] = items[0]
       options["video_id"] = items[1]
-      options["title"] = items[2]
-      if len(items) > 3:
-        options["privacyStatus"] = items[3]
+      options["statink"] = items[2]
+      options["title"] = items[3]
+      if len(items) > 4:
+        options["privacyStatus"] = items[4]
       elif unlisted:
         options["privacyStatus"] = "unlisted"
       else:
@@ -138,6 +139,8 @@ def parse_file(filename, video_dir, prev_id = None, unlisted = False):
       description += u"%s\n" % NEXT_VIDEO_PLACEHOLDER
     if prev_id:
       description += u"前: https://youtu.be/%s\n" % prev_id
+    if value.get("statink"):
+      description += u"stat.ink: %s\n" % value["statink"]
 
     description_file = os.path.join(video_dir, value["video_file"] + ".txt")
     video_description = read_description(description_file)
