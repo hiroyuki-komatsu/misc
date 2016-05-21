@@ -20,9 +20,8 @@ def parse_file(filename, video_dir):
       options["title"] = items[2]
 
       statink = os.path.join(video_dir, options["video_file"] + ".statink")
-      if not os.path.exists(statink):
-        continue
-      options["statink"] = statink
+      if os.path.exists(statink):
+        options["statink"] = statink
       update_list.append(options)
 
   return update_list
@@ -52,6 +51,9 @@ if __name__ == "__main__":
     video_file = update['video_file']
     video_id = update["video_id"]
     title = update['title']
-    statink = update['statink']
-    url = UploadToStatInk(args.ikalog_dir, statink, video_id)
+    if 'statink' in update:
+      statink = update['statink']
+      url = UploadToStatInk(args.ikalog_dir, statink, video_id)
+    else:
+      url = ''
     print('\t'.join([video_file, video_id, title, url]))

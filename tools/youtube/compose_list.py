@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # coding: utf-8
 
 import argparse
@@ -49,8 +49,11 @@ def main():
 
   with open(args.output_sheet, 'w') as output:
     for item in open(args.playlist):
-      video_file, video_id, title, statink = item.rstrip().split('\t')
+      video_file, video_id, title, *items = item.rstrip().split('\t')
       video_path = os.path.join(args.video_dir, video_file)
+      statink = ''
+      if len(items) > 0:
+        statink = items[0]
       output.write('\t'.join(process_file(video_path, video_id, statink)) +
                    '\n')
 
