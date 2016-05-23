@@ -5,17 +5,26 @@ import os.path
 import subprocess
 import sys
 
+def mp4_to_ts(mp4_file):
+    ts_file = mp4_file + '.ts'
+    command = ['ffmpeg', '-i', mp4_file, '-c', 'copy',
+               '-bsf:v', 'h264_mp4toannexb', '-f', 'mpegts', ts_file]
+    subprocess.check_call(' '.join(command), shell=True)
+    return ts_file
+
+def concat_ts(ts_files, output):
+    command = ['ffmpeg', '-i', '"concat:%s"' % '|'.join(ts_files),
+               '-codec', 'copy', output]
+    subprocess.check_call(' '.join(command), shell=True)
+
 inputs = sys.argv[1:]
-output = '%s-concat%s' % os.path.splitext(inputs[0])
+output = '%s-concat.ts' % os.path.splitext(inputs[0])[0]
 
 ### Call ffmpeg to concat videos.
-command = ['ffmpeg']
+ts_files = []
 for filename in inputs:
-  command.extend(['-i', '"%s"' % filename])
-command.extend(['-filter_complex', 'concat=n=%d:v=1:a=1' % len(inputs), output])
-
-#print ' '.join(command)
-subprocess.check_call(' '.join(command), shell=True)
+    ts_files.append(mp4_to_ts(filename))
+concat_ts(ts_files, output)
 
 ### Change the concat file's times.
 mtime = os.path.getmtime(inputs[-1])

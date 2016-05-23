@@ -29,9 +29,7 @@ def parse_file(filename, video_dir):
 
 def UploadToStatInk(ikalog_dir, statink, video_id):
   command = os.path.join(ikalog_dir, 'tools/statink/upload_payload.py')
-  url = subprocess.check_output([command,
-                                 '--payload=%s' % statink,
-                                 '--video_id=%s' % video_id])
+  url = subprocess.check_output([command, statink, '--video_id=%s' % video_id])
   return url.rstrip()
 
 
