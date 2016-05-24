@@ -115,9 +115,9 @@ def parse_file(filename, video_dir, prev_id = None, unlisted = False):
       options["video_file"] = items[0]
       options["video_id"] = items[1]
       options["statink"] = items[2]
-      options["title"] = items[3]
-      if len(items) > 4:
-        options["privacyStatus"] = items[4]
+      options["title"] = items[16]
+      if len(items) > 17:
+        options["privacyStatus"] = items[17]
       elif unlisted:
         options["privacyStatus"] = "unlisted"
       else:

@@ -22,11 +22,21 @@ output = '%s-concat.ts' % os.path.splitext(inputs[0])[0]
 
 ### Call ffmpeg to concat videos.
 ts_files = []
+src_files = []
 for filename in inputs:
-    ts_files.append(mp4_to_ts(filename))
+    if filename.endswith('.ts'):
+        ts_files.append(filename)
+    elif filename.endswith('.mp4'):
+        ts_files.append(mp4_to_ts(filename))
+        src_files.append(filename)
 concat_ts(ts_files, output)
 
 ### Change the concat file's times.
 mtime = os.path.getmtime(inputs[-1])
 atime = os.path.getatime(inputs[-1])
 os.utime(output, (atime, mtime))
+
+### Move src files to /tmp/.
+src_files += ts_files
+for filename in src_files:
+    os.rename(filename, '/tmp/' + os.path.basename(filename))

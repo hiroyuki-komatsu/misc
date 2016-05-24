@@ -12,14 +12,14 @@ import youtube_auth
 from oauth2client.tools import argparser
 
 def get_default_title(filename):
-  filename = re.compile(".mp4|\\(|\\)").sub("", filename)
+  filename = re.compile(".mp4|.ts|\\(|\\)").sub("", filename)
   filename = re.compile("[\\.\\-_]").sub(" ", filename)
   return filename
 
 def get_video_dict(video_dir):
   video_dict = {}
   for filename in os.listdir(video_dir):
-    if filename.endswith('mp4'):
+    if filename.endswith('mp4') or filename.endswith('ts'):
       video_dict[get_default_title(filename)] = filename
   return video_dict
 
@@ -60,6 +60,11 @@ def get_playlist(youtube, num=None):
       for playlist_item in playlistitems_list_response["items"]:
         title = playlist_item["snippet"]["title"]
         video_id = playlist_item["snippet"]["resourceId"]["videoId"]
+
+        if not title.startswith('splatoon'):
+          print('\t'.join([video_id, title]))
+          return playlist
+
         playlist.append([title, video_id])
         #print data.encode("utf-8")
 

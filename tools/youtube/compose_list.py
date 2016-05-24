@@ -22,27 +22,52 @@ def get_summary(ikalog_dir, statink):
                                  '--statink=%s' % statink])
   return tsv.decode('utf-8').rstrip('\n').split('\t')
 
-def process_file(video_file, ikalog_dir, id='', statink=''):
+def process_file(video_file, ikalog_dir, video_id='', statink='',
+                 prev_date='', prev_index=0):
   # filename looks like splatoon_recording-2015-12-28-00-30-0.mp4.txt
   video = os.path.basename(video_file)
   type = ''
   date = video[19:29]
-  index = ''
-
-  type_dict = {'.52ガロン': 'スプラトゥーン',
-               'ガロン52': 'スプラトゥーン',
-               'スプラチャージャー': 'スプラトゥーン チャージャー'}
-
-  data = [video, id, statink, type, date, index]
+  index = 1
+  if date == prev_date:
+    index = prev_index + 1
 
   items = get_summary(ikalog_dir, video_file + '.statink')
   (input_file, end_at, lobby, rule, stage, weapon, result, kill, death,
    rank_before, rank_after) = items
-  data[3] = type_dict.get(weapon, '')  # update type
+
+  type_dict = {'.52ガロン': 'スプラトゥーン',
+               'ガロン52': 'スプラトゥーン',
+               'スプラチャージャー': 'スプラトゥーン チャージャー'}
+  type = type_dict.get(weapon, '')  # update type
+
+  data = [video, video_id, statink, type, date, str(index)]
+
   weapon = normalize_weapon_name(weapon)
   rule = rule.replace('ガチホコバトル', 'ガチホコ')
-  data += [rule, stage, result.capitalize(), kill, death,
-           rank_before.upper(), rank_after.upper(), weapon]
+  comment = ''
+  valid = '0'
+  if type and rule and stage:
+    valid = '1'
+
+  rank_before = rank_before.upper()
+  rank_after = rank_after.upper()
+  rank_trajectory = ''
+  if rank_before or rank_after:
+    rank_trajectory = '→'.join([rank_before, rank_after])
+  kill_text = ''
+  if kill:
+    kill_text = kill + 'k'
+  death_text = ''
+  if death:
+    death_text = death + 'd'
+
+  result = result.capitalize()
+
+  title = '%s %s#%02d %s %s %s %s%s %s' % (
+    type, date, index, rule, stage, result, kill_text, death_text, rank_trajectory)
+
+  data += [rule, stage, result, kill, death, rank_before, rank_after, weapon, comment, valid, title]
   return data
 
 
@@ -52,9 +77,12 @@ def main():
   parser.add_argument("--video_dir")
   parser.add_argument("--ikalog_dir")
   parser.add_argument("--output_sheet")
+  parser.add_argument("--prev_date", help='e.g. 2015-05-28#01')
   args = parser.parse_args()
 
   ikalog_dir = args.ikalog_dir
+  prev_date, prev_index = args.prev_date.split('#')
+  prev_index = int(prev_index)
 
   with open(args.output_sheet, 'w') as output:
     for item in open(args.playlist):
@@ -63,8 +91,10 @@ def main():
       statink = ''
       if len(items) > 0:
         statink = items[0]
-      output.write('\t'.join(process_file(video_path, ikalog_dir, video_id, statink)) +
-                   '\n')
+      data = process_file(video_path, ikalog_dir, video_id, statink, prev_date, prev_index)
+      prev_date = data[4]
+      prev_index = int(data[5])
+      output.write('\t'.join(data) + '\n')
 
 if __name__ == "__main__":
   main()
