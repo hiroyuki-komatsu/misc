@@ -33,7 +33,7 @@ def process_file(video_file, ikalog_dir, video_id='', statink='',
     index = prev_index + 1
 
   items = get_summary(ikalog_dir, video_file + '.statink')
-  (input_file, end_at, lobby, rule, stage, weapon, result, kill, death,
+  (end_at, lobby, rule, stage, weapon, result, kill, death,
    rank_before, rank_after) = items
 
   type_dict = {'.52ガロン': 'スプラトゥーン',
