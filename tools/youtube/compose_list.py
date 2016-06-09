@@ -39,7 +39,11 @@ def process_file(video_file, ikalog_dir, video_id='', statink='',
   type_dict = {'.52ガロン': 'スプラトゥーン',
                'ガロン52': 'スプラトゥーン',
                'スプラチャージャー': 'スプラトゥーン チャージャー'}
-  type = type_dict.get(weapon, '')  # update type
+  lobby_to_type = {'タッグマッチ': 'タッグマッチ',
+                   'プライベートマッチ': 'プライベートマッチ'}
+
+  # type = type_dict.get(weapon, '')  # update type
+  type = lobby_to_type.get(lobby, 'スプラトゥーン')
 
   data = [video, video_id, statink, type, date, str(index)]
 
