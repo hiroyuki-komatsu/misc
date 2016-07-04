@@ -68,8 +68,8 @@ def process_file(video_file, ikalog_dir, video_id='', statink='',
 
   result = result.capitalize()
 
-  title = '%s %s#%02d %s %s %s %s%s %s' % (
-    type, date, index, rule, stage, result, kill_text, death_text, rank_trajectory)
+  title = '%s %s#%02d %s %s %s %s %s%s %s' % (
+    type, date, index, weapon, rule, stage, result, kill_text, death_text, rank_trajectory)
 
   data += [rule, stage, result, kill, death, rank_before, rank_after, weapon, comment, valid, title]
   return data
@@ -81,11 +81,17 @@ def main():
   parser.add_argument("--video_dir")
   parser.add_argument("--ikalog_dir")
   parser.add_argument("--output_sheet")
+  parser.add_argument("--prev_data")
   parser.add_argument("--prev_date", help='e.g. 2015-05-28#01')
   args = parser.parse_args()
 
   ikalog_dir = args.ikalog_dir
-  prev_date, prev_index = args.prev_date.split('#')
+  if args.prev_data:
+    with open(args.prev_data) as prev_data:
+      prev_info = prev_data.read().split(' ')[1]
+  else:
+    prev_info = args.prev_date
+  prev_date, prev_index = prev_info.split('#')
   prev_index = int(prev_index)
 
   with open(args.output_sheet, 'w') as output:

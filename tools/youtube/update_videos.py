@@ -151,6 +151,7 @@ def parse_file(filename, video_dir, prev_id = None, unlisted = False):
 if __name__ == "__main__":
   argparser.add_argument("--data", help="Data file.", required=True)
   argparser.add_argument("--prev_id", help="Previous ID")
+  argparser.add_argument("--prev_data")
   argparser.add_argument("--video_dir")
   argparser.add_argument("--unlisted", action="store_true")
   args = argparser.parse_args()
@@ -162,19 +163,27 @@ if __name__ == "__main__":
   youtube = youtube_auth.get_authenticated_service(args)
 
   number = 0
+  prev_id = None
   if args.prev_id:
-    update_prev_id(youtube, args.prev_id, update_list[0]["video_id"])
+    prev_id = args.prev_id
+  elif args.prev_data:
+    with open(args.prev_data) as prev_data:
+      prev_id = prev_data.read().split('\t')[0]
+
+  if prev_id:
+    update_prev_id(youtube, prev_id, update_list[0]["video_id"])
     number += 1
+
   try:
-      for update in update_list:
-        video_id = update["video_id"]
-        if update_video(youtube, video_id, update):
-          print("Updated https://youtu.be/%s" % video_id)
-          print(json_dumps(update))
-          print('')
-        else:
-          print("Error on updating https://youtu.be/%s" % video_id)
-        number += 1
+    for update in update_list:
+      video_id = update["video_id"]
+      if update_video(youtube, video_id, update):
+        print("Updated https://youtu.be/%s" % video_id)
+        print(json_dumps(update))
+        print('')
+      else:
+        print("Error on updating https://youtu.be/%s" % video_id)
+      number += 1
   except HttpError, e:
     print("An HTTP error %d occurred:" % e.resp.status)
     print(json_dumps(e.content))

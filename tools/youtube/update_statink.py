@@ -6,6 +6,7 @@ import os
 import os.path
 import subprocess
 import sys
+import time
 
 def parse_file(filename, video_dir):
   update_list = []
@@ -52,6 +53,7 @@ if __name__ == "__main__":
     if 'statink' in update:
       statink = update['statink']
       url = UploadToStatInk(args.ikalog_dir, statink, video_id)
+      time.sleep(2)
     else:
       url = ''
     print('\t'.join([video_file, video_id, title, url]))
