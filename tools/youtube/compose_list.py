@@ -72,6 +72,9 @@ def process_file(video_file, ikalog_dir, video_id='', statink='',
     type, date, index, weapon, rule, stage, result, kill_text, death_text, rank_trajectory)
 
   data += [rule, stage, result, kill, death, rank_before, rank_after, weapon, comment, valid, title]
+
+  if type is not 'スプラトゥーン':
+    data.append('unlisted')
   return data
 
 
@@ -89,8 +92,10 @@ def main():
   if args.prev_data:
     with open(args.prev_data) as prev_data:
       prev_info = prev_data.read().split(' ')[1]
-  else:
+  elif args.prev_date:
     prev_info = args.prev_date
+  else:
+    prev_info = '2015-05-28#01'
   prev_date, prev_index = prev_info.split('#')
   prev_index = int(prev_index)
 

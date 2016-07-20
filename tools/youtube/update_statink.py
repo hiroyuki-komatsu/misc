@@ -53,7 +53,9 @@ if __name__ == "__main__":
     if 'statink' in update:
       statink = update['statink']
       url = UploadToStatInk(args.ikalog_dir, statink, video_id)
+      if not url.startswith('http'):
+          sys.exit(1)
       time.sleep(2)
     else:
       url = ''
-    print('\t'.join([video_file, video_id, title, url]))
+    print(u'\t'.join([video_file, video_id, title, url]).encode('utf-8'))
