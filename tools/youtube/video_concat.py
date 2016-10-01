@@ -38,5 +38,6 @@ os.utime(output, (atime, mtime))
 
 ### Move src files to /tmp/.
 src_files += ts_files
+moved_ext = '.concated'  # Need to be in the same volume.
 for filename in src_files:
-    os.rename(filename, '/tmp/' + os.path.basename(filename))
+    os.rename(filename, filename + moved_ext)

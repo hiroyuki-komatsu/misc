@@ -23,7 +23,7 @@ def get_video_dict(video_dir):
       video_dict[get_default_title(filename)] = filename
   return video_dict
 
-def get_playlist(youtube, num=None):
+def get_playlist(youtube, num=None, prev_data_file=None):
   max_results = 50
   if num and num < 50:
     max_results = num
@@ -62,7 +62,11 @@ def get_playlist(youtube, num=None):
         video_id = playlist_item["snippet"]["resourceId"]["videoId"]
 
         if not title.startswith('splatoon'):
-          print('\t'.join([video_id, title]))
+          prev_data = '\t'.join([video_id, title])
+          if prev_data_file:
+            with open(prev_data_file, 'w') as file:
+              file.write(prev_data.encode('utf-8') + '\n')
+          print(prev_data)
           return playlist
 
         playlist.append([title, video_id])
@@ -91,13 +95,14 @@ def main():
                          help="num of videos", type=int)
   argparser.add_argument("--video_dir")
   argparser.add_argument("--output_playlist")
+  argparser.add_argument("--output_prev_data")
   args = argparser.parse_args()
 
   video_dict = get_video_dict(args.video_dir)
 
   youtube = youtube_auth.get_authenticated_service(args)
 
-  playlist = get_playlist(youtube, args.num)
+  playlist = get_playlist(youtube, args.num, args.output_prev_data)
 
   compose_data(playlist, video_dict, args.output_playlist)
 

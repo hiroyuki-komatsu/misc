@@ -45,11 +45,15 @@ def main():
   lines = []
   for video_pair in get_videos(os.path.expanduser(args.video_dir), last_time):
     video_path = video_pair[0]
+    if os.path.basename(video_path).startswith('._'):
+      continue
+
     tsv = get_tsv(os.path.expanduser(args.ikalog_dir), video_path)
     valid = 0
     if '' not in tsv:
       valid = 1
-    if (tsv[1] == 'プライベートマッチ') and ('' not in tsv[0:8]):
+    if ((tsv[1] == 'プライベートマッチ' or tsv[2] == 'ナワバリバトル') and
+        ('' not in tsv[0:8])):
       valid = 1
 
     line = '\t'.join([str(valid), video_path] + tsv)
