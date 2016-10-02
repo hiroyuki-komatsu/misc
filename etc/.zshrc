@@ -28,6 +28,7 @@ function prependpath() { test -d $1 && export PATH="$1:$PATH" }
 
 # For Mac
 appendpath /Developer/usr/bin/
+appendpath $HOME/bin/
 
 export GTK_IM_MODULE=uim
 export LANG=ja_JP.UTF-8
