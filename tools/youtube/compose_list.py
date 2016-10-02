@@ -48,7 +48,10 @@ def process_file(video_file, ikalog_dir, video_id='', statink='',
   data = [video, video_id, statink, type, date, str(index)]
 
   weapon = normalize_weapon_name(weapon)
-  rule = rule.replace('ガチホコバトル', 'ガチホコ')
+  if lobby == 'フェス' and rule == 'ナワバリバトル':
+    rule = 'フェス'
+  else:
+    rule = rule.replace('ガチホコバトル', 'ガチホコ')
   comment = ''
   valid = '0'
   if type and rule and stage:
