@@ -2,6 +2,10 @@
 
 import argparse
 import cv2
+import numpy as np
+
+def resize(input, width, height):
+  return cv2.resize(input, (width, height))
 
 def gray(input):
   gray = cv2.cvtColor(input, cv2.COLOR_BGR2GRAY)
@@ -15,6 +19,14 @@ def threth(input, thresh):
 
   max_pixel = 255
   ret, img_dst = cv2.threshold(gray, thresh, max_pixel, cv2.THRESH_BINARY)
+
+  return cv2.cvtColor(img_dst, cv2.COLOR_GRAY2BGR)
+
+def binary(input):
+  gray = cv2.cvtColor(input, cv2.COLOR_BGR2GRAY)
+  gray = cv2.medianBlur(gray, 5)
+  img_dst = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                  cv2.THRESH_BINARY, 11, 2)
 
   return cv2.cvtColor(img_dst, cv2.COLOR_GRAY2BGR)
 
@@ -32,6 +44,7 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--input')
   parser.add_argument('--output')
+  parser.add_argument('--resize', type=str)
   parser.add_argument('--gray', action='store_true')
   parser.add_argument('--negaposi', action='store_true')
   parser.add_argument('--threth', type=int)
@@ -39,6 +52,9 @@ def main():
   args = parser.parse_args()
 
   input = cv2.imread(args.input, 1)
+  if args.resize:
+    width, height = args.resize.split("x")
+    input = resize(input, int(width), int(height))
   if args.gray:
     input = gray(input)
   if args.negaposi:
