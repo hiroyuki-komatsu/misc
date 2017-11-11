@@ -1,0 +1,50 @@
+<html>
+<body>
+<video id="preview" autoplay></video>
+<button id="capture">Capture</button>
+<canvas id="snapshot" width=240 height=240></canvas>
+<script>
+  function download(filename, blob) {
+    let link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+  }
+
+  function getCroppingPosition(width, height) {
+    let value = { x: 0, y: 0, w: width, h: height };
+    if (width > height) {
+      value.x = Math.floor((width - height) / 2);
+      value.w = height;
+    } else {
+      value.y = Math.floor((height - width) / 2);
+      value.h = width;
+    }
+    return value;
+  }
+
+  function copyToCanvas(preview, canvas) {
+    let context = canvas.getContext('2d');
+    let pos = getCroppingPosition(preview.offsetWidth, preview.offsetHeight);
+    context.drawImage(preview,
+                      pos.x, pos.y, pos.w, pos.h,
+                      0, 0, canvas.offsetWidth, canvas.offsetHeight);
+  }
+
+  let preview = document.getElementById('preview');
+  navigator.mediaDevices.getUserMedia({video: true, audio: false})
+    .then((stream) => {
+      preview.srcObject = stream;
+    });
+
+  let capture = document.getElementById('capture');
+  capture.addEventListener('click', function() {
+    let snapshot = document.getElementById('snapshot');
+    copyToCanvas(preview, snapshot);
+    snapshot.toBlob((blob) => {
+      download('image.jpg', blob);
+    });
+  });
+</script>
+</body>
+</html>
