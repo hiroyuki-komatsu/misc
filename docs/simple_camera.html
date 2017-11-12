@@ -1,0 +1,48 @@
+<html>
+<body>
+<video id="preview" autoplay></video>
+<button id="capture">Capture</button>
+<canvas id="snapshot"></canvas>
+
+<script>
+  function initCamera(preview, canvas) {
+    const constraints = {video: true, audio: false};
+    navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+      preview.srcObject = stream;
+      preview.addEventListener('loadedmetadata', () => {
+        canvas.width = preview.videoWidth;
+        canvas.height = preview.videoHeight;
+      });
+    });
+  }
+
+  function captureCamera(preview, canvas, filename) {
+    copyToCanvas(preview, canvas);
+    canvas.toBlob((blob) => {
+      download(filename, blob);
+    }, 'image/jpeg');
+  }
+
+  function copyToCanvas(preview, canvas) {
+    let context = canvas.getContext('2d');
+    context.drawImage(preview, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+  }
+
+  function download(filename, blob) {
+    let link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+  }
+
+  let preview = document.getElementById('preview');
+  let snapshot = document.getElementById('snapshot');
+  let capture = document.getElementById('capture');
+
+  initCamera(preview, snapshot);
+  capture.addEventListener('click', () => {
+    captureCamera(preview, snapshot, 'image.jpg');
+  });
+</script>
+</body>
+</html>
