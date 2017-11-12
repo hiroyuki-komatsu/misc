@@ -1,12 +1,15 @@
 <html>
 <body>
-<video id="preview" autoplay></video>
+<video id="preview" autoplay playsinline></video>
 <button id="capture">Capture</button>
 <canvas id="snapshot"></canvas>
 
 <script>
   function initCamera(preview, canvas) {
-    const constraints = {video: true, audio: false};
+    const constraints = {
+      video: {facingMode: "environment"},
+      audio: false
+    };
     navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
       preview.srcObject = stream;
       preview.addEventListener('loadedmetadata', () => {

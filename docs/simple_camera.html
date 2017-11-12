@@ -6,7 +6,10 @@
 
 <script>
   function initCamera(preview, canvas) {
-    const constraints = {video: true, audio: false};
+    const constraints = {
+      video: {facingMode: "environment"},
+      audio: false
+    };
     navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
       preview.srcObject = stream;
       preview.addEventListener('loadedmetadata', () => {
