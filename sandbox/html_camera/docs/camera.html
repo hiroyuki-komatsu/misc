@@ -1,9 +1,60 @@
 <html>
+<head>
+<style>
+#main {
+  padding: 0;
+  width: 480;
+  height: 480;
+}
+#preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 480;
+  height: 480;
+}
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 480;
+  height: 480;
+  border: solid, 3px;
+  border-color: blue;
+}
+</style>
+</head>
 <body>
-<video id="preview" autoplay></video>
+<div id="main">
+  <video id="preview" autoplay></video>
+  <canvas id="overlay"></canvas>
+</div>
 <button id="capture">Capture</button>
 <canvas id="snapshot" width=240 height=240></canvas>
+
 <script>
+  function initCamera(preview, canvas) {
+    const constraints = {video: {width: 480, height: 480}, audio: false};
+    navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+      preview.srcObject = stream;
+      preview.addEventListener('loadedmetadata', () => {
+        initOverlay(preview.videoWidth, preview.videoHeight);
+      });
+    });
+  }
+
+  function captureCamera(preview, canvas, filename) {
+    copyToCanvas(preview, canvas);
+    canvas.toBlob((blob) => {
+      download(filename, blob);
+    }, 'image/jpeg');
+  }
+
+  function copyToCanvas(preview, canvas) {
+    let context = canvas.getContext('2d');
+    context.drawImage(preview, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+  }
+
   function download(filename, blob) {
     let link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
@@ -11,39 +62,37 @@
     link.click();
   }
 
-  function getCroppingPosition(width, height) {
-    let value = { x: 0, y: 0, w: width, h: height };
-    if (width > height) {
-      value.x = Math.floor((width - height) / 2);
-      value.w = height;
-    } else {
-      value.y = Math.floor((height - width) / 2);
-      value.h = width;
-    }
-    return value;
+  function drawLine(context, x1, y1, x2, y2) {
+    context.beginPath();
+    context.moveTo(x1, y1);
+    context.lineTo(x2, y2);
+    context.stroke();
   }
 
-  function copyToCanvas(preview, canvas) {
-    let context = canvas.getContext('2d');
-    let pos = getCroppingPosition(preview.offsetWidth, preview.offsetHeight);
-    context.drawImage(preview,
-                      pos.x, pos.y, pos.w, pos.h,
-                      0, 0, canvas.offsetWidth, canvas.offsetHeight);
+  function initOverlay(width, height) {
+    let overlay = document.getElementById("overlay");
+    overlay.width = width;
+    overlay.height = height;
+
+    const dx = width / 5;
+    const dy = height / 5;
+
+    let context = overlay.getContext('2d');
+    context.strokeStyle = '#666';
+    context.lineWidth = 1;
+    for (let i = 1; i <= 4; i++) {
+      drawLine(context, dx * i, 0, dx * i, height);
+      drawLine(context, 0, dy * i, width, dy * i);
+    }
   }
 
   let preview = document.getElementById('preview');
-  navigator.mediaDevices.getUserMedia({video: true, audio: false})
-    .then((stream) => {
-      preview.srcObject = stream;
-    });
-
+  let snapshot = document.getElementById('snapshot');
   let capture = document.getElementById('capture');
+
+  initCamera(preview, snapshot);
   capture.addEventListener('click', function() {
-    let snapshot = document.getElementById('snapshot');
-    copyToCanvas(preview, snapshot);
-    snapshot.toBlob((blob) => {
-      download('image.jpg', blob);
-    });
+    captureCamera(preview, snapshot, 'image.jpg');
   });
 </script>
 </body>
