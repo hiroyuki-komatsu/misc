@@ -1,0 +1,14 @@
+<html>
+<body>
+<a href="https://google.com" target="_blank">open</a>
+<button id="button">open</button>
+
+<script>
+document.getElementById('button').addEventListener('click', () => {
+  let winHandler = window.open('', '_blank');
+  setTimeout(() => { winHandler.location = 'https://google.com'; }, 1);
+});
+</script>
+
+</body>
+</html>
