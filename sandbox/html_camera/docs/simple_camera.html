@@ -46,12 +46,13 @@
   }
 
   function download(filename, blob) {
+    let url = window.URL.createObjectURL(blob);
     if (isIosSafari()) {
       window.open(url, '_blank');
       return;
     }
     let link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
+    link.href = url;
     link.download = filename;
     link.click();
   }
