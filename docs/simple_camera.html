@@ -19,11 +19,10 @@
     });
   }
 
-  function captureCamera(preview, canvas, filename) {
+  async function captureCamera(preview, canvas, filename) {
     copyToCanvas(preview, canvas);
-    canvas.toBlob((blob) => {
-      download(filename, blob);
-    }, 'image/jpeg');
+    let blob = await canvasToBlob(canvas);
+    download(filename, blob);
   }
 
   function copyToCanvas(preview, canvas) {
@@ -31,10 +30,19 @@
     context.drawImage(preview, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
   }
 
+  async function canvasToBlob(canvas) {
+    return new Promise(function(resolve, reject) {
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, 'image/jpeg');
+    });
+  }
+
   function download(filename, blob) {
     let link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
     link.download = filename;
+    link.target = '_blank';
     link.click();
   }
 
