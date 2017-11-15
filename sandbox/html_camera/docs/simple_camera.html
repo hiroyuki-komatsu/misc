@@ -38,11 +38,21 @@
     });
   }
 
+  function isIosSafari() {
+    let ua = window.navigator.userAgent;
+    let ios = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
+    let iosSafari = ios && !!ua.match(/WebKit/i) && !ua.match(/CriOS/i);
+    return iosSafari;
+  }
+
   function download(filename, blob) {
+    if (isIosSafari()) {
+      window.open(url, '_blank');
+      return;
+    }
     let link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
     link.download = filename;
-    link.target = '_blank';
     link.click();
   }
 
