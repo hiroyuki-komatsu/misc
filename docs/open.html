@@ -2,12 +2,30 @@
 <body>
 <a href="https://google.com" target="_blank">open</a>
 <button id="button">open</button>
+<button id="button2">open2</button>
 
 <script>
 document.getElementById('button').addEventListener('click', () => {
   let winHandler = window.open('', '_blank');
   setTimeout(() => { winHandler.location = 'https://google.com'; }, 1);
 });
+
+async function getURL() {
+  return new Promise(function(resolve, reject) {
+    setTimeout(() => { resolve('https://google.com'); }, 1);
+  });
+}
+
+async function onClick() {
+  let url = await getURL();
+  console.log(url);
+  window.open(url, '_blank');
+}
+
+document.getElementById('button2').addEventListener('click', () => {
+  onClick();
+});
+
 </script>
 
 </body>
