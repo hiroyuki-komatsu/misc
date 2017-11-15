@@ -20,9 +20,18 @@
   }
 
   async function captureCamera(preview, canvas, filename) {
+    if (isIosSafari()) {
+      let win = window.open('', '_blank');
+      let blob = await canvasToBlob(canvas);
+      let url = window.URL.createObjectURL(blob);
+      win.location = url;
+      return;
+    }
+
     copyToCanvas(preview, canvas);
     let blob = await canvasToBlob(canvas);
-    download(filename, blob);
+    let url = window.URL.createObjectURL(blob);
+    download(filename, url);
   }
 
   function copyToCanvas(preview, canvas) {
@@ -45,12 +54,7 @@
     return iosSafari;
   }
 
-  function download(filename, blob) {
-    let url = window.URL.createObjectURL(blob);
-    if (isIosSafari()) {
-      window.open(url, '_blank');
-      return;
-    }
+  function download(filename, url) {
     let link = document.createElement('a');
     link.href = url;
     link.download = filename;
