@@ -45,7 +45,7 @@
   let canvas = document.getElementById('snapshot_canvas');
   let img = document.getElementById('snapshot_img');
 
-  initCamera(preview, canvas).then(() => {
+  initCamera(preview).then(() => {
     canvas.width = preview.videoWidth;
     canvas.height = preview.videoHeight;
     img.width = preview.videoWidth;
