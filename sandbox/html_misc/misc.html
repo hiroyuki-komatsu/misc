@@ -1,0 +1,19 @@
+<html>
+<body>
+<script>
+  function isIosSafari() {
+    let ua = window.navigator.userAgent;
+    let ios = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
+    let iosSafari = ios && !!ua.match(/WebKit/i) && !ua.match(/CriOS/i);
+    return iosSafari;
+  }
+
+  function download(filename, url) {
+    let link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+  }
+</script>
+</body>
+</html>
