@@ -1,0 +1,167 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+
+<div id="main">
+  filename:
+  <input id="filename" type="text">
+  <textarea id="content" cols="80" rows="20"></textarea><br/>
+  <button id="saveButton">save</button>
+</div>
+
+<div id="auth">
+  <button id="authButton">sign in</button>
+</div>
+
+<script src="gapi_config.js"></script>
+<script async defer src="https://apis.google.com/js/api.js" onload="initAuth()"></script>
+
+<script type="text/javascript">
+function initPage() {
+  let main = document.getElementById('main');
+  let auth = document.getElementById('auth');
+  main.style.display = 'none';
+  auth.style.display = 'none';
+
+  let saveButton = document.getElementById('saveButton');
+  saveButton.addEventListener('click', () => {
+    writeFile();
+  });
+  
+  let authButton = document.getElementById('authButton');
+  authButton.addEventListener('click', () => {
+    GoogleClient.signIn();
+  });
+}
+
+function initAuth() {
+  const apiKey = GAPI_API_KEY;
+  const clientId = GAPI_CLIENT_ID;
+  const scope = 'https://www.googleapis.com/auth/drive';
+  const discoveryDocs = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+
+  GoogleClient.initAuth(apiKey, clientId, scope, discoveryDocs).then(() => {
+    GoogleClient.setListener(updateSigninStatus);
+  });
+}
+
+function updateSigninStatus(isSignedIn) {
+  let main = document.getElementById('main');
+  let auth = document.getElementById('auth');
+  if(isSignedIn) {
+    main.style.display = null;
+    auth.style.display = 'none';
+  } else {
+    main.style.display = 'none';
+    auth.style.display = null;
+  }
+}
+
+function writeFile() {
+  const filename = document.getElementById('filename').value;
+  const content = document.getElementById('content').value;
+  let blob = new Blob([content], {type: 'text/plain'});
+  GoogleDrive.uploadFile(filename, blob);
+}
+
+class GoogleClient {
+  static initAuth(apiKey, clientId, scope, discoveryDocs) {
+    return new Promise((resolve, reject) => {
+      gapi.load('client:auth2', () => {
+        gapi.client.init({
+          apiKey: apiKey,
+          clientId: clientId,
+          scope: scope,
+          discoveryDocs: discoveryDocs,
+        }).then(() => {
+          resolve();
+        });
+      });
+    });
+  }
+
+  static setListener(callback) {
+    gapi.auth2.getAuthInstance().isSignedIn.listen(callback);
+    callback(gapi.auth2.getAuthInstance().isSignedIn.get());
+  }
+
+  static singIn() {
+    gapi.auth2.getAuthInstance().signIn();
+  }
+}
+
+function blobToBase64(blob) {
+  let reader = new window.FileReader();
+  reader.readAsDataURL(blob); 
+
+  return new Promise((resolve, reject) => {
+    reader.onloadend = function() {
+      let base64data = reader.result;
+      base64data = base64data.substr(base64data.indexOf(',') + 1);
+      resolve(base64data);
+    }
+  });
+}
+
+class GoogleDrive {
+  static async uploadFile(filename, blob) {
+    let request = await GoogleDrive.createRequest(filename, blob);
+    gapi.client.load('drive', 'v3').then(() => {
+      gapi.client.request(request).then((response) => {
+        console.log('saved:');
+        console.log(response);
+      });
+    });
+  }
+
+  static async createRequest(filename, blob) {
+    const boundary = Math.random().toString(36);
+    const request = {
+      'path': '/upload/drive/v3/files',
+      'method': 'POST',
+      'params': {
+        'uploadType': 'multipart'
+      },
+      'headers': {
+        'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+      },
+      'body': await GoogleDrive.createMultipart(filename, blob, boundary)
+    };
+    return request;
+  }
+
+  static async createMultipart(filename, blob, boundary) {
+    const delimiter = '--' + boundary;
+    const contentType = blob.type;
+    const metadata = {
+      'name': filename,
+      'mimeType': contentType
+    };
+
+    const base64Data = await blobToBase64(blob);
+    const data = [
+      '',
+      delimiter,
+      'Content-Type: application/json',
+      '',
+      JSON.stringify(metadata),
+      '',
+      delimiter,
+      'Content-Type: ' + contentType,
+      'Content-Transfer-Encoding: base64',
+      '',
+      base64Data,
+      '',
+      delimiter + '--',
+    ];
+    return data.join('\r\n');
+  }
+}
+
+initPage();
+</script>
+
+</body>
+</html>

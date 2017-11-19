@@ -88,8 +88,6 @@
   };
 
   initCamera(preview, constraints).then(() => {
-    //canvas.width = preview.videoWidth;
-    //canvas.height = preview.videoHeight;
     initOverlay(overlay, preview.videoWidth, preview.videoHeight);
     capture.addEventListener('click', function() {
       captureCamera(preview, canvas);
