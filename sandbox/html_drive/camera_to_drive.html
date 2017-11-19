@@ -2,34 +2,40 @@
 <head>
 <style>
 #camera {
+  position: relative;
   padding: 0;
-  width: 480;
-  height: 480;
+  width: 640px;
+  height: 640px;
+  overflow: hidden;
+  display: block;
 }
 #preview {
   position: absolute;
   top: 0;
   left: 0;
-  width: 480;
-  height: 480;
+  min-width: 100%;
+  min-height: 100%;
 }
 #overlay {
   position: absolute;
   top: 0;
   left: 0;
-  width: 480;
-  height: 480;
+  width: 100%;
+  height: 100%;
 }
 </style>
 </head>
 <body>
 <div id="main">
   <div id="camera">
-    <video id="preview" autoplay></video>
+    <video id="preview" autoplay playsinline></video>
     <canvas id="overlay"></canvas>
   </div>
   <button id="capture">Capture</button><br/>
   <canvas id="snapshot" width=240 height=240></canvas>
+
+  <hr />
+  <button id="signOutButton">sign out</button>
 </div>
 
 <div id="auth">
@@ -52,16 +58,23 @@ function initPage() {
 
   let camera = new Camera(preview);
   const constraints = {
-    video: {width: 480, height: 480, facingMode: "environment"},
+    // width and height do not work on Safari. (2017-11-19)
+    video: {facingMode: "environment"},
     audio: false
   };
   camera.initCamera(constraints).then(() => {
-    initOverlay(overlay, camera.width, camera.height);
+    let size = Math.min(camera.width, camera.height);
+    initOverlay(overlay, size, size);
     capture.addEventListener('click', function() {
       cameraToDrive(camera);
     });
   });
-  
+
+  let signOutButton = document.getElementById('signOutButton');
+  signOutButton.addEventListener('click', () => {
+    GoogleClient.signOut();
+  });
+
   let authButton = document.getElementById('authButton');
   authButton.addEventListener('click', () => {
     GoogleClient.signIn();
@@ -92,8 +105,9 @@ function updateSigninStatus(isSignedIn) {
 }
 
 function cameraToDrive(camera) {
+  let size = Math.min(camera.width, camera.height);
   let canvas = document.getElementById('snapshot');
-  camera.copyToCanvas(canvas);
+  camera.copyToCanvas(canvas, 0, 0, size, size);
   let filename = 'image.jpg';
 
   canvas.toBlob((blob) => {
@@ -120,9 +134,9 @@ class Camera {
     });
   }
 
-  copyToCanvas(canvas) {
+  copyToCanvas(canvas, x=0, y=0, w=this.width, h=this.height) {
     let context = canvas.getContext('2d');
-    context.drawImage(this.preview, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+    context.drawImage(this.preview, x, y, w, h, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
   }
 
   get width() {
@@ -145,15 +159,15 @@ function initOverlay(overlay, width, height) {
   overlay.width = width;
   overlay.height = height;
 
-  const dx = width / 5;
-  const dy = height / 5;
+  const dx = width / 12;
+  const dy = height / 12;
 
   let context = overlay.getContext('2d');
   context.strokeStyle = '#666';
   context.lineWidth = 1;
-  for (let i = 1; i <= 4; i++) {
-    drawLine(context, dx * i, 0, dx * i, height);
-    drawLine(context, 0, dy * i, width, dy * i);
+  for (let i = 1; i <= 11; i += 2) {
+    drawLine(context, dx * i, dx, dx * i, dx * 11);
+    drawLine(context, dy, dy * i, dy * 11, dy * i);
   }
 }
 
@@ -178,8 +192,16 @@ class GoogleClient {
     callback(gapi.auth2.getAuthInstance().isSignedIn.get());
   }
 
-  static singIn() {
-    gapi.auth2.getAuthInstance().signIn();
+  static signIn() {
+    let options = undefined;
+    if (location.hostname !== 'localhost') {
+      options = {ux_mode: 'redirect'};
+    }
+    gapi.auth2.getAuthInstance().signIn(options);
+  }
+
+  static signOut() {
+    gapi.auth2.getAuthInstance().signOut();
   }
 }
 

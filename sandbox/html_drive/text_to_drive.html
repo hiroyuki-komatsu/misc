@@ -6,9 +6,11 @@
 
 <div id="main">
   filename:
-  <input id="filename" type="text">
+  <input id="filename" type="text"><br/>
   <textarea id="content" cols="80" rows="20"></textarea><br/>
   <button id="saveButton">save</button>
+  <hr />
+  <button id="signOutButton">sign out</button>
 </div>
 
 <div id="auth">
@@ -30,6 +32,11 @@ function initPage() {
     writeFile();
   });
   
+  let signOutButton = document.getElementById('signOutButton');
+  signOutButton.addEventListener('click', () => {
+    GoogleClient.signOut();
+  });
+
   let authButton = document.getElementById('authButton');
   authButton.addEventListener('click', () => {
     GoogleClient.signIn();
@@ -87,8 +94,16 @@ class GoogleClient {
     callback(gapi.auth2.getAuthInstance().isSignedIn.get());
   }
 
-  static singIn() {
-    gapi.auth2.getAuthInstance().signIn();
+  static signIn() {
+    let options = undefined;
+    if (location.hostname !== 'localhost') {
+      options = {ux_mode: 'redirect'};
+    }
+    gapi.auth2.getAuthInstance().signIn(options);
+  }
+
+  static signOut() {
+    gapi.auth2.getAuthInstance().signOut();
   }
 }
 
