@@ -31,68 +31,79 @@
 <canvas id="snapshot" width=240 height=240></canvas>
 
 <script>
-  function initCamera(preview, constraints = undefined) {
+class Camera {
+  constructor(preview) {
+    this.preview = preview;
+  }
+
+  initCamera(constraints = undefined) {
     if (constraints == undefined) {
       constraints = {video: true, audio: false};
     }
 
-    return new Promise(async function(resolve, reject) {
+    return new Promise(async (resolve, reject) => {
       let stream = await navigator.mediaDevices.getUserMedia(constraints);
-      preview.srcObject = stream;
-      preview.addEventListener('loadedmetadata', () => {
+      this.preview.srcObject = stream;
+      this.preview.addEventListener('loadedmetadata', () => {
         resolve();
       });
     });
   }
 
-  function captureCamera(preview, canvas) {
-    copyToCanvas(preview, canvas);
-  }
-
-  function copyToCanvas(preview, canvas) {
+  copyToCanvas(canvas) {
     let context = canvas.getContext('2d');
-    context.drawImage(preview, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+    context.drawImage(this.preview, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
   }
 
-  function drawLine(context, x1, y1, x2, y2) {
-    context.beginPath();
-    context.moveTo(x1, y1);
-    context.lineTo(x2, y2);
-    context.stroke();
+  get width() {
+    return this.preview.videoWidth;
   }
 
-  function initOverlay(overlay, width, height) {
-    overlay.width = width;
-    overlay.height = height;
-
-    const dx = width / 5;
-    const dy = height / 5;
-
-    let context = overlay.getContext('2d');
-    context.strokeStyle = '#666';
-    context.lineWidth = 1;
-    for (let i = 1; i <= 4; i++) {
-      drawLine(context, dx * i, 0, dx * i, height);
-      drawLine(context, 0, dy * i, width, dy * i);
-    }
+  get height() {
+    return this.preview.videoHeight;
   }
+}
 
-  let preview = document.getElementById('preview');
-  let overlay = document.getElementById("overlay");
-  let canvas = document.getElementById('snapshot');
-  let capture = document.getElementById('capture');
+function drawLine(context, x1, y1, x2, y2) {
+  context.beginPath();
+  context.moveTo(x1, y1);
+  context.lineTo(x2, y2);
+  context.stroke();
+}
 
-  const constraints = {
-    video: {width: 480, height: 480, facingMode: "environment"},
-    audio: false
-  };
+function initOverlay(overlay, width, height) {
+  overlay.width = width;
+  overlay.height = height;
 
-  initCamera(preview, constraints).then(() => {
-    initOverlay(overlay, preview.videoWidth, preview.videoHeight);
-    capture.addEventListener('click', function() {
-      captureCamera(preview, canvas);
-    });
+  const dx = width / 5;
+  const dy = height / 5;
+
+  let context = overlay.getContext('2d');
+  context.strokeStyle = '#666';
+  context.lineWidth = 1;
+  for (let i = 1; i <= 4; i++) {
+    drawLine(context, dx * i, 0, dx * i, height);
+    drawLine(context, 0, dy * i, width, dy * i);
+  }
+}
+
+let preview = document.getElementById('preview');
+let overlay = document.getElementById("overlay");
+let canvas = document.getElementById('snapshot');
+let capture = document.getElementById('capture');
+
+let camera = new Camera(preview);
+
+const constraints = {
+  video: {width: 480, height: 480, facingMode: "environment"},
+  audio: false
+};
+camera.initCamera(constraints).then(() => {
+  initOverlay(overlay, camera.width, camera.height);
+  capture.addEventListener('click', function() {
+    camera.copyToCanvas(canvas);
   });
+});
 </script>
 </body>
 </html>
