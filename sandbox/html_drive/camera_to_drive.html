@@ -1,11 +1,18 @@
 <html>
 <head>
 <style>
+#camera:before {
+  content: "";
+  padding-top: 100%;
+  display: block;
+}
 #camera {
   position: relative;
   padding: 0;
-  width: 640px;
-  height: 640px;
+  width: 100%;
+  min-width: 480px;
+  max-width: 80vh;
+  height: auto;
   overflow: hidden;
   display: block;
 }
@@ -22,6 +29,10 @@
   left: 0;
   width: 100%;
   height: 100%;
+}
+#capture {
+  width: 100%;
+  height: 10vh;
 }
 </style>
 </head>
