@@ -174,8 +174,8 @@ function initOverlay(overlay, width, height) {
   const dy = height / 12;
 
   let context = overlay.getContext('2d');
-  context.strokeStyle = '#666';
-  context.lineWidth = 1;
+  context.strokeStyle = '#FFF';
+  context.lineWidth = 3;
   for (let i = 1; i <= 11; i += 2) {
     drawLine(context, dx * i, dx, dx * i, dx * 11);
     drawLine(context, dy, dy * i, dy * 11, dy * i);
