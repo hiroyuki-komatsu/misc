@@ -1,6 +1,8 @@
 #!/usr/local/bin/python3
-
-# ./cifar10.py --datadir train/input --output data_batch_1.bin 
+"""
+./cifar10.py --datadir train/input --output data_batch_1.bin
+./cifar10.py --dumpfile data_batch_1.bin --outdir data_dir
+"""
 
 import argparse
 import numpy as np
@@ -65,28 +67,33 @@ def generateData(data_dir, output_file):
   print ('count: %d' % cifar10.count)
 
 
-def dumpImages():
-  datafile = 'cifar10.bin'
-  with open(datafile, mode='rb') as src:
+def dumpImages(dumpfile, outdir):
+  with open(dumpfile, mode='rb') as src:
     cifar10 = Cifar10Data(src.read())
+
+  os.makedirs(os.path.abspath(outdir), exist_ok=True)
 
   for index in range(2):
     label, image = cifar10.getImage(index)
 
     print('label: %d' % label)
     filename = 'cifar10-%02d-%d.png' % (index, label)
-    image.save(filename, format='png')
+    image.save(os.path.join(outdir, filename), format='png')
 
 
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--datadir')
   parser.add_argument('--output')
+
+  parser.add_argument('--outdir')
+  parser.add_argument('--dumpfile')
+
   args = parser.parse_args()
 
-  # dumpImages()
-  # data_dir = 'data/output'
-  # output_file = 'cifar10.bin'
-  generateData(args.datadir, args.output)
+  if args.dumpfile:
+    dumpImages(args.dumpfile, args.outdir)
+  else:
+    generateData(args.datadir, args.output)
 
 main()
