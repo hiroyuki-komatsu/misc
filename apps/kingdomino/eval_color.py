@@ -46,6 +46,8 @@ parser = argparse.ArgumentParser()
 # Basic model parameters.
 parser.add_argument('--use_fp16', type=bool, default=False,
                     help='Train the model using fp16.')
+parser.add_argument('--input', default='/tmp/sample.jpg')
+parser.add_argument('--single', default=False, action='store_true')
 
 FLAGS = parser.parse_args()
 NUM_CLASSES = 10
@@ -212,14 +214,12 @@ def imageTo25np(filename):
 
   return outputs
 
-def evaluate():
+def evaluate(images_array):
   """Eval CIFAR-10 for a number of steps."""
   # Get images for CIFAR-10.
-  # data_file = '/tmp/output_0013.jpg'
-  data_file = '/tmp/sample.jpg'
-  images_np = imageTo25np(data_file)
+  input_size = len(images_array)
 
-  images = tf.placeholder(tf.float32, shape=(25, 24, 24, 3))
+  images = tf.placeholder(tf.float32, shape=(input_size, 24, 24, 3))
 
   # Build a Graph that computes the logits predictions from the
   # inference model.
@@ -246,29 +246,41 @@ def evaluate():
       print('No checkpoint file found')
       return
 
-    predictions = sess.run(indices_op, feed_dict={images: images_np})
-    printResult(predictions)
+    predictions = sess.run(indices_op, feed_dict={images: images_array})
+
+  result = []
+  for i in range(input_size):
+    result.append(int(predictions[i][0]))
+  return result
 
 
-def printResult(predictions):
+def printResult(result):
+  if len(result) == 1:
+    print(result)
+    return
+
   lines = []
   for y in range(5):
     cells = []
     for x in range(5):
-      val = int(predictions[y*5 + x][0])
+      val = result[y*5 + x]
       cells.append('%d' % (val))
     lines.append(' '.join(cells))
   print('\n'.join(lines))
 
-  result = []
-  for i in range(25):
-    result.append(int(predictions[i][0]))
   with open('/tmp/result.js', 'w') as f:
     f.write('const result = %s;\n' % (result))
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-  evaluate()
+  input_file = FLAGS.input
+  if FLAGS.single:
+    images_array = [imageToNp(input_file)]
+  else:
+    images_array = imageTo25np(input_file)
+
+  result = evaluate(images_array)
+  printResult(result)
 
 
 if __name__ == '__main__':
