@@ -1,0 +1,87 @@
+<html>
+<head>
+<script src="file:///tmp/result.js"></script>
+<style>
+/* {'base': 0, 'forest': 1, 'grass': 2, 'pond': 3, 'rock': 4, 'sea': 5, 'weat': 6} */
+
+#result {
+  margin: 0;
+  padding: 20px;
+  width: 240px;
+  height: 240px;
+  border: solid 1px black;
+}
+
+#result tr {
+  padding: 0;
+  margin: 0;
+}
+
+#result td {
+  margin: 0;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+}
+
+.class_0 { /* base */
+  background-color: grey;
+}
+.class_1 { /* forest */
+  background-color: green;
+}
+.class_2 { /* grass */
+  background-color: lightgreen;
+}
+.class_3 { /* pond */
+  background-color: #958562;
+}
+.class_4 { /* rock */
+  background-color: darkgray;
+}
+.class_5 { /* sea */
+  background-color: lightblue;
+}
+.class_6 { /* weat */
+  background-color: lightyellow;
+}
+</style>
+</head>
+<body>
+  <img src="file:///tmp/sample.jpg" />
+  <table id="result">
+    <tr><td id="cell_0_0"></td><td id="cell_1_0"></td><td id="cell_2_0"></td><td id="cell_3_0"></td><td id="cell_4_0"></td></tr>
+    <tr><td id="cell_0_1"></td><td id="cell_1_1"></td><td id="cell_2_1"></td><td id="cell_3_1"></td><td id="cell_4_1"></td></tr>
+    <tr><td id="cell_0_2"></td><td id="cell_1_2"></td><td id="cell_2_2"></td><td id="cell_3_2"></td><td id="cell_4_2"></td></tr>
+    <tr><td id="cell_0_3"></td><td id="cell_1_3"></td><td id="cell_2_3"></td><td id="cell_3_3"></td><td id="cell_4_3"></td></tr>
+    <tr><td id="cell_0_4"></td><td id="cell_1_4"></td><td id="cell_2_4"></td><td id="cell_3_4"></td><td id="cell_4_4"></td></tr>
+  </table>
+  <table id="images">
+    <tr><td id="img_0_0"></td><td id="img_1_0"></td><td id="img_2_0"></td><td id="img_3_0"></td><td id="img_4_0"></td></tr>
+    <tr><td id="img_0_1"></td><td id="img_1_1"></td><td id="img_2_1"></td><td id="img_3_1"></td><td id="img_4_1"></td></tr>
+    <tr><td id="img_0_2"></td><td id="img_1_2"></td><td id="img_2_2"></td><td id="img_3_2"></td><td id="img_4_2"></td></tr>
+    <tr><td id="img_0_3"></td><td id="img_1_3"></td><td id="img_2_3"></td><td id="img_3_3"></td><td id="img_4_3"></td></tr>
+    <tr><td id="img_0_4"></td><td id="img_1_4"></td><td id="img_2_4"></td><td id="img_3_4"></td><td id="img_4_4"></td></tr>
+  </table>
+  
+<script>
+function fillResult(result) {
+  for (let y = 0; y < 5; y++) {
+    for (let x = 0; x < 5; x++) {
+      let val = result[y*5 + x];
+      let e = document.getElementById(`cell_${x}_${y}`);
+      e.classList.add(`class_${val}`);
+      e.innerText = `${val}`;
+
+      let img = document.getElementById(`img_${x}_${y}`);
+      img.innerHTML = `<img src="file:///tmp/cell_${x}_${y}.jpg">`;
+      console.log(`file:///tmp/cell_${x}_${y}.jpg`);
+    }
+  }
+}
+
+fillResult(result);
+</script>
+</body>
+</html>

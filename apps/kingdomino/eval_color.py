@@ -38,15 +38,12 @@ import os
 import numpy as np
 import tensorflow as tf
 
-# import cifar10
+from PIL import Image
 
 import argparse
 parser = argparse.ArgumentParser()
 
 # Basic model parameters.
-parser.add_argument('--batch_size', type=int, default=1,
-                    help='Number of images to process in a batch.')
-
 parser.add_argument('--use_fp16', type=bool, default=False,
                     help='Train the model using fp16.')
 
@@ -152,7 +149,8 @@ def inference(images):
   # local3
   with tf.variable_scope('local3') as scope:
     # Move everything into depth so we can perform a single matrix multiply.
-    reshape = tf.reshape(pool2, [FLAGS.batch_size, -1])
+    batch_size = images.get_shape()[0].value
+    reshape = tf.reshape(pool2, [batch_size, -1])
     dim = reshape.get_shape()[1].value
     weights = _variable_with_weight_decay('weights', shape=[dim, 384],
                                           stddev=0.04, wd=0.004)
@@ -184,36 +182,44 @@ def inference(images):
 # architecture will change and any model would need to be retrained.
 IMAGE_SIZE = 24
 
-def input(filename):
-  if not tf.gfile.Exists(filename):
-    raise ValueError('Failed to find file: ' + filename)
+def imageToNp(filename):
+  size = IMAGE_SIZE
+  image = Image.open(filename)
+  data = image.resize((size, size))
+  return np.asarray(data)
 
-  jpeg_r = tf.read_file(filename)
-  read_input = tf.image.decode_jpeg(jpeg_r, channels=3)
+def imageTo25np(filename):
+  image = Image.open(filename)
+  width, height = image.size
+  px = width / 12
+  py = height / 12
+  mx = width / 60
+  my = height / 60
+  dw = (width - px * 2) / 5
+  dh = (height - py * 2) / 5
 
-  reshaped_image = tf.cast(read_input, tf.float32)
+  outputs = []
 
-  height = IMAGE_SIZE
-  width = IMAGE_SIZE
+  w = dw + (mx * 2)
+  h = dh + (my * 2)
+  for i in range(5):
+    y = py + (dh * i) - my
+    for j in range(5):
+      x = px + (dw * j) - mx
+      cropped = image.crop((int(x), int(y), int(x+w), int(y+h))).resize((24,24))
+      cropped.save('/tmp/cell_%d_%d.jpg' % (j, i), format='jpeg')
+      outputs.append(np.asarray(cropped))
 
-  # Image processing for evaluation.
-  # Crop the central [height, width] of the image.
-  resized_image = tf.image.resize_image_with_crop_or_pad(reshaped_image,
-                                                         height, width)
-
-  # Subtract off the mean and divide by the variance of the pixels.
-  float_image = tf.image.per_image_standardization(resized_image)
-
-  # Set the shapes of tensors.
-  float_image.set_shape([height, width, 3])
-  return tf.reshape(float_image, [-1, height, width, 3])
-
+  return outputs
 
 def evaluate():
   """Eval CIFAR-10 for a number of steps."""
   # Get images for CIFAR-10.
-  data_file = '/tmp/output_0013.jpg'
-  images = input(data_file)
+  # data_file = '/tmp/output_0013.jpg'
+  data_file = '/tmp/sample.jpg'
+  images_np = imageTo25np(data_file)
+
+  images = tf.placeholder(tf.float32, shape=(25, 24, 24, 3))
 
   # Build a Graph that computes the logits predictions from the
   # inference model.
@@ -228,7 +234,8 @@ def evaluate():
   variables_to_restore = variable_averages.variables_to_restore()
   saver = tf.train.Saver(variables_to_restore)
 
-  checkpoint_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'train/model')
+  checkpoint_dir = '/tmp/cifar10_train'
+  # checkpoint_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'train/model')
   print(checkpoint_dir)
   with tf.Session() as sess:
     ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
@@ -239,9 +246,25 @@ def evaluate():
       print('No checkpoint file found')
       return
 
-    predictions = sess.run(indices_op)
-    print(predictions)
-    return
+    predictions = sess.run(indices_op, feed_dict={images: images_np})
+    printResult(predictions)
+
+
+def printResult(predictions):
+  lines = []
+  for y in range(5):
+    cells = []
+    for x in range(5):
+      val = int(predictions[y*5 + x][0])
+      cells.append('%d' % (val))
+    lines.append(' '.join(cells))
+  print('\n'.join(lines))
+
+  result = []
+  for i in range(25):
+    result.append(int(predictions[i][0]))
+  with open('/tmp/result.js', 'w') as f:
+    f.write('const result = %s;\n' % (result))
 
 
 def main(argv=None):  # pylint: disable=unused-argument

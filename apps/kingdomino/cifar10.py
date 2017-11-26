@@ -1,5 +1,7 @@
 #!/usr/local/bin/python3
 
+# ./cifar10.py --datadir train/input --output data_batch_1.bin 
+
 import argparse
 import numpy as np
 import os
