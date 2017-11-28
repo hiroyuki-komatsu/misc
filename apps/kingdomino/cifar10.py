@@ -33,15 +33,15 @@ class Cifar10Data(object):
     self.height = height
     self.depth = depth
     self.data = data or bytes([])
-    self.count = 0
+    self.image_size = 1 + self.width * self.height * self.depth
+    self.count = len(self.data) / self.image_size
 
   def appendImage(self, label, image):
     self.data += imageToCifar10(label, image, self.width, self.height)
     self.count += 1
 
   def getImage(self, index):
-    data_size = 1 + self.width * self.height * self.depth
-    data = self.data[data_size * index : data_size * (index + 1)]
+    data = self.data[self.image_size * index : data_size * (index + 1)]
     return cifar10ToImage(data)
 
   def save(self, filepath):

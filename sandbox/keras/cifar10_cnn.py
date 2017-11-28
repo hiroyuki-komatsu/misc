@@ -19,15 +19,35 @@ import os
 
 batch_size = 32
 num_classes = 10
-epochs = 1
+epochs = 200
 data_augmentation = True
 num_predictions = 20
-save_dir = os.path.join(os.getcwd(), 'saved_models')
+# save_dir = os.path.join(os.getcwd(), 'saved_models')
 model_name = 'keras_cifar10_trained_model.h5'
 
-def fit():
+# kingdomino/
+# epochs 20, default
+# Test loss: 0.383512539715
+# Test accuracy: 0.86875
+
+# kingdomino2/
+# epochs 20, samplewise_std_normalization=True
+# Test loss: 1.20160151482
+# Test accuracy: 0.81125
+
+# kingdomino3/
+# epochs 20, featurewise_std_normalization=True
+# Test loss: 1.28831517935
+# Test accuracy: 0.55
+
+# kingdomino4/
+# epochs 200, default
+# Test loss: 0.0130378063288
+# Test accuracy: 0.99875
+
+def fit(data_file, save_dir):
     # The data, shuffled and split between train and test sets:
-    (x_train, y_train), (x_test, y_test) = cifar10_dataset.load_data()
+    (x_train, y_train), (x_test, y_test) = cifar10_dataset.load_data(data_file)
     print('x_train shape:', x_train.shape)
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
@@ -121,6 +141,11 @@ def fit():
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input')
-    # fit()
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--input')
+  parser.add_argument('--model_dir')
+  args = parser.parse_args()
+
+  fit('data_batch_1.bin', args.model_dir)
+
+main()

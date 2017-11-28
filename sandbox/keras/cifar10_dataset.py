@@ -4,35 +4,74 @@ from keras.utils.data_utils import get_file
 from keras import backend as K
 import numpy as np
 import os
+from PIL import Image
+
+def cifar10ToImage(byte_array, width=32, height=32, depth=3):
+  label = np.frombuffer(byte_array[0:1], dtype=np.uint8)
+
+  np_array = np.frombuffer(byte_array[1:], dtype=np.uint8)
+  reshaped = np_array.reshape((depth, width, height))
+  transposed = reshaped.transpose((1, 2, 0))
+
+  return label, Image.fromarray(transposed)
+
+class Cifar10Data(object):
+  def __init__(self, data=None, width=32, height=32, depth=3):
+    self.width = width
+    self.height = height
+    self.depth = depth
+    self.data = data or bytes([])
+    self.image_size = 1 + self.width * self.height * self.depth
+    self.count = int(len(self.data) / self.image_size)
+
+  def appendImage(self, label, image):
+    self.data += imageToCifar10(label, image, self.width, self.height)
+    self.count += 1
+
+  def getImage(self, index):
+    data = self.data[self.image_size * index : self.image_size * (index + 1)]
+    return cifar10ToImage(data)
+
+  def save(self, filepath):
+    with open(filepath, mode='wb') as file:
+      file.write(self.data)
+
+def load_batch(data_file):
+  """Internal utility for parsing CIFAR data.
+  # Arguments
+      fpath: path the file to parse.
+      label_key: key for label data in the retrieve
+          dictionary.
+  # Returns
+      A tuple `(data, labels)`.
+  """
+  images = []
+  labels = []
+  with open(data_file, mode='rb') as src:
+    cifar10 = Cifar10Data(src.read())
+
+    print(cifar10.count)
+
+    for i in range(cifar10.count):
+      label, image = cifar10.getImage(i)
+      labels.append(label)
+      images.append(np.asarray(image))
+
+  return np.asarray(images), np.asarray(labels)
 
 
-def load_data():
-    """Loads CIFAR10 dataset.
-    # Returns
-        Tuple of Numpy arrays: `(x_train, y_train), (x_test, y_test)`.
-    """
-    dirname = 'cifar-10-batches-py'
-    origin = 'https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
-    path = get_file(dirname, origin=origin, untar=True)
+def load_data(data_file):
+  """Loads CIFAR10 dataset.
+  # Returns
+      Tuple of Numpy arrays: `(x_train, y_train), (x_test, y_test)`.
+  """
+  
 
-    num_train_samples = 50000
+  num_train_samples = 50000
 
-    x_train = np.empty((num_train_samples, 3, 32, 32), dtype='uint8')
-    y_train = np.empty((num_train_samples,), dtype='uint8')
+  x_train, y_train = load_batch(data_file)
 
-    for i in range(1, 6):
-        fpath = os.path.join(path, 'data_batch_' + str(i))
-        (x_train[(i - 1) * 10000: i * 10000, :, :, :],
-         y_train[(i - 1) * 10000: i * 10000]) = load_batch(fpath)
+  if K.image_data_format() != 'channels_last':
+      x_train = x_train.transpose(0, 3, 1, 2)
 
-    fpath = os.path.join(path, 'test_batch')
-    x_test, y_test = load_batch(fpath)
-
-    y_train = np.reshape(y_train, (len(y_train), 1))
-    y_test = np.reshape(y_test, (len(y_test), 1))
-
-    if K.image_data_format() == 'channels_last':
-        x_train = x_train.transpose(0, 2, 3, 1)
-        x_test = x_test.transpose(0, 2, 3, 1)
-
-    return (x_train, y_train), (x_test, y_test)
+  return (x_train, y_train), (x_train, y_train)

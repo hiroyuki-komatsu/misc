@@ -20,17 +20,30 @@ class Cifar10(object):
     input_data = np.asarray([np.asarray(image)])
     return self.model.predict(input_data)
 
+  def saveModelAndWeight(self, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+    self.model.save_weights(os.path.join(output_dir, 'model.hdf5'))
+
+    with open(os.path.join(output_dir, 'model.json'), 'w') as f:
+      f.write(self.model.to_json())
+
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--input')
+  parser.add_argument('--model_dir')
+  parser.add_argument('--output_dir')
   args = parser.parse_args()
 
-  save_dir = os.path.join(os.getcwd(), 'saved_models')
   model_name = 'keras_cifar10_trained_model.h5'
 
-  model_path = os.path.join(save_dir, model_name)
+  model_path = os.path.join(args.model_dir, model_name)
   cifar10 = Cifar10(model_path)
-  result = cifar10.predictWithImage(args.input)
-  print(result)
+
+  if args.input:
+    result = cifar10.predictWithImage(args.input)
+    print(result)
+
+  if args.output_dir:
+    cifar10.saveModelAndWeight(args.output_dir)
 
 main()
