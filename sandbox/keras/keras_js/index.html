@@ -3,6 +3,19 @@
   <script src="keras.js"></script>
 <body>
 <script>
+function rgbaToRgb(image_rgba, width, height) {
+  let image_rgb = [];
+  for (let y = 0; y < height; ++y) {
+    for (let x = 0; x < width; ++x) {
+      const base = ((y * height) + x) * 4;  // 4 = size of rgba
+      for (let i = 0; i < 3; ++i) {
+        image_rgb.push(image_rgba.data[base + i]);
+      }
+    }
+  }
+  return image_rgb;
+}
+
 function imageToRgb(image) {
   let canvas = document.createElement('canvas');
   const size = 32;
@@ -12,15 +25,7 @@ function imageToRgb(image) {
   context.drawImage(image, 0, 0, image.width, image.height, 0, 0, size, size);
 
   const image_rgba = context.getImageData(0, 0, size, size);
-  let image_rgb = [];
-  for (let y = 0; y < size; ++y) {
-    for (let x = 0; x < size; ++x) {
-      const base = ((y * size) + x) * 4;  // 4 = size of rgba
-      for (let i = 0; i < 3; ++i) {
-        image_rgb.push(image_rgba.data[base + i]);
-      }
-    }
-  }
+  let image_rgb = rgbaToRgb(image_rgba, size, size);
   return image_rgb;
 }
 
@@ -29,48 +34,43 @@ function imageToData(filename) {
   base_image.src = filename;
   return new Promise((resolve, reject) => {
     base_image.onload = () => {
-      resolve(new Float32Array(imageToRgb(base_image)));
+      resolve(imageToRgb(base_image));
     }
   });
 }
 
-const model = new KerasJS.Model({
-  filepaths: {
-    model: 'model.json',
-    weights: 'model_weights.buf',
-    metadata: 'model_metadata.json'
-  },
-  gpu: true
-})
-
-model.ready()
-.then(async () => {
-  console.log('ready');
-  // input data object keyed by names of the input layers
-  // or `input` for Sequential models
-  // values are the flattened Float32Array data
-  // (input tensor shapes are specified in the model config)
-  let data = await imageToData('forest.jpg');
-  const inputData = {
-    'input': data,
+class KerasModel {
+  constructor() {
+    this.model = new KerasJS.Model({
+      filepaths: {
+        model: 'model.json',
+        weights: 'model_weights.buf',
+        metadata: 'model_metadata.json'
+      },
+      gpu: true
+    });
+    this.ready();
   }
 
-  // make predictions
-  return model.predict(inputData);
-})
-.then(outputData => {
-  // outputData is an object keyed by names of the output layers
-  // or `output` for Sequential models
-  // e.g.,
-  // outputData['fc1000']
-  console.log('done');
-  console.log(outputData['output']);
-})
-.catch(err => {
-  console.log('error');
-  console.log(err);
-  // handle error
-})
+  async ready() {
+    return this.model.ready();
+  }
+
+  async predict(input) {
+    await this.ready();
+    let result = await this.model.predict({'input': input});
+    return result['output'];
+  }
+}
+
+async function main() {
+  let keras = new KerasModel();
+  let image = new Float32Array(await imageToData('forest.jpg'));
+  let result = await keras.predict(image);
+  console.log(result);
+}
+
+main();
 </script>
 loaded.
 </body>
