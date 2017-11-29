@@ -1,7 +1,65 @@
 <html>
-  <meta charset="utf-8">
-  <script src="keras.js"></script>
+<head>
+<meta charset="utf-8">
+<script src="keras.js"></script>
+<style>
+/* {'base': 0, 'forest': 1, 'grass': 2, 'pond': 3, 'rock': 4, 'sea': 5, 'weat': 6} */
+
+#result {
+  margin: 0;
+  padding: 20px;
+  width: 240px;
+  height: 240px;
+  border: solid 1px black;
+}
+
+#result tr {
+  padding: 0;
+  margin: 0;
+}
+
+#result td {
+  margin: 0;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+}
+
+.class_0 { /* base */
+  background-color: lightpink;
+}
+.class_1 { /* forest */
+  background-color: green;
+}
+.class_2 { /* grass */
+  background-color: lightgreen;
+}
+.class_3 { /* pond */
+  background-color: #958562;
+}
+.class_4 { /* rock */
+  background-color: #3D372C;
+}
+.class_5 { /* sea */
+  background-color: lightblue;
+}
+.class_6 { /* weat */
+  background-color: lightyellow;
+}
+</style>
+</head>
+
 <body>
+<img id="input" src="sample.jpg"/>
+<table id="result">
+  <tr><td id="cell_0_0"></td><td id="cell_1_0"></td><td id="cell_2_0"></td><td id="cell_3_0"></td><td id="cell_4_0"></td></tr>
+  <tr><td id="cell_0_1"></td><td id="cell_1_1"></td><td id="cell_2_1"></td><td id="cell_3_1"></td><td id="cell_4_1"></td></tr>
+  <tr><td id="cell_0_2"></td><td id="cell_1_2"></td><td id="cell_2_2"></td><td id="cell_3_2"></td><td id="cell_4_2"></td></tr>
+  <tr><td id="cell_0_3"></td><td id="cell_1_3"></td><td id="cell_2_3"></td><td id="cell_3_3"></td><td id="cell_4_3"></td></tr>
+  <tr><td id="cell_0_4"></td><td id="cell_1_4"></td><td id="cell_2_4"></td><td id="cell_3_4"></td><td id="cell_4_4"></td></tr>
+</table>
+
 <script>
 class MyImage {
   constructor(image) {
@@ -11,9 +69,18 @@ class MyImage {
   static async fromFile(filename) {
     let image = new Image();
     image.src = filename;
-    return new Promise((resolve, reject) => {
+    return MyImage.fromImage(image);
+  }
+
+  static async fromImage(image) {
+    let promise = new Promise((resolve, reject) => {
       image.onload = () => { resolve(new MyImage(image)); }
     });
+
+    if (image.complete) {
+      return new MyImage(image);
+    }
+    return promise;
   }
 
   getImages() {
@@ -64,47 +131,6 @@ class MyImage {
   }
 }
 
-class ImageArray {
-  constructor(rgba, height) {
-    this.rgba = rgba;
-    this.height = height;
-  }
-
-  static async fromFile(filename, width, height) {
-    let image = new Image();
-    image.src = filename;
-    await new Promise((resolve, reject) => {
-      image.onload = () => { resolve(); }
-    });
-    return ImageArray.fromImage(image, width, height);
-  }
-
-  static fromImage(image, width, height) {
-    let canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    let context = canvas.getContext('2d');
-    context.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height);
-
-    let rgba = context.getImageData(0, 0, width, height);
-    return new ImageArray(rgba.data, height);
-  }
-
-  cropToRgb(x, y, w, h) {
-    const channel = 4;  // size of rgba
-    let rgb_array = [];
-    for (let j = 0; j < h; ++j) {
-      for (let i = 0; i < w; ++i) {
-        const index = (((y + j) * this.height) + x + i) * channel;
-        for (let i = 0; i < 3; ++i) {
-          rgb_array.push(this.rgba[index + i]);
-        }
-      }
-    }
-    return rgb_array;
-  }
-}
-
 class KerasModel {
   constructor() {
     this.model = new KerasJS.Model({
@@ -139,7 +165,6 @@ async function loadImage(filename, size=240) {
 
   output = [];
   const length = delta + (margin * 2);
-  console.log(length);
   for (let j = 0; j < panels; ++j) {
     const y = padding + (delta * j) - margin;
     for (let i = 0; i < panels; ++i) {
@@ -152,20 +177,42 @@ async function loadImage(filename, size=240) {
   return output;
 }
 
+function fillResult(result) {
+  for (let y = 0; y < 5; y++) {
+    for (let x = 0; x < 5; x++) {
+      let val = result[y*5 + x];
+      let e = document.getElementById(`cell_${x}_${y}`);
+      e.classList.add(`class_${val}`);
+      e.innerText = `${val}`;
+    }
+  }
+}
+
+function getIndex(array) {
+  let max = 0;
+  let index = 0;
+  for (let i = 0; i < array.length; ++i) {
+    if (array[i] > max) {
+      index = i;
+    }
+  }
+  return index;
+}
 
 async function main() {
   let keras = new KerasModel();
-  let myimage = await MyImage.fromFile('sample.jpg');
+  let myimage = await MyImage.fromImage(document.getElementById('input'));
   let images = myimage.getImages();
 
+  let results = [];
   for (let image of images) {
     const result = await keras.predict(new Float32Array(image));
-    console.log(result);
+    results.push(getIndex(result));
   }
+  fillResult(results);
 }
 
 main();
 </script>
-loaded.
 </body>
 </html>
