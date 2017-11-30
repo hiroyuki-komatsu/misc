@@ -3,8 +3,43 @@
 <meta charset="utf-8">
 <script src="model/keras.js"></script>
 <style>
-/* {'base': 0, 'forest': 1, 'grass': 2, 'pond': 3, 'rock': 4, 'sea': 5, 'weat': 6} */
+/* camera */
 
+#camera:before {
+  content: "";
+  padding-top: 100%;
+  display: block;
+}
+#camera {
+  position: relative;
+  padding: 0;
+  width: 100%;
+  min-width: 480px;
+  max-width: 80vh;
+  height: auto;
+  overflow: hidden;
+  display: block;
+}
+#preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 100%;
+  min-height: 100%;
+}
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+#capture {
+  width: 100%;
+  height: 10vh;
+}
+/* result */
+/* {'base': 0, 'forest': 1, 'grass': 2, 'pond': 3, 'rock': 4, 'sea': 5, 'weat': 6} */
 #result {
   margin: 0;
   padding: 20px;
@@ -51,19 +86,141 @@
 </head>
 
 <body>
-<img id="input" src="sample.jpg"/>
-<table id="result">
-  <tr><td id="cell_0_0"></td><td id="cell_1_0"></td><td id="cell_2_0"></td><td id="cell_3_0"></td><td id="cell_4_0"></td></tr>
-  <tr><td id="cell_0_1"></td><td id="cell_1_1"></td><td id="cell_2_1"></td><td id="cell_3_1"></td><td id="cell_4_1"></td></tr>
-  <tr><td id="cell_0_2"></td><td id="cell_1_2"></td><td id="cell_2_2"></td><td id="cell_3_2"></td><td id="cell_4_2"></td></tr>
-  <tr><td id="cell_0_3"></td><td id="cell_1_3"></td><td id="cell_2_3"></td><td id="cell_3_3"></td><td id="cell_4_3"></td></tr>
-  <tr><td id="cell_0_4"></td><td id="cell_1_4"></td><td id="cell_2_4"></td><td id="cell_3_4"></td><td id="cell_4_4"></td></tr>
+<div id="main">
+  <div id="camera">
+    <video id="preview" autoplay playsinline></video>
+    <canvas id="overlay"></canvas>
+  </div>
+  <button id="capture">Capture</button><br/>
+</div>
+
+<table>
+<tr>
+  <td>
+    <canvas id="snapshot" width=240 height=240></canvas>
+  </td>
+  <td>
+  <div id="result_div">
+    <table id="result">
+      <tr><td id="cell_0_0"></td><td id="cell_1_0"></td><td id="cell_2_0"></td><td id="cell_3_0"></td><td id="cell_4_0"></td></tr>
+      <tr><td id="cell_0_1"></td><td id="cell_1_1"></td><td id="cell_2_1"></td><td id="cell_3_1"></td><td id="cell_4_1"></td></tr>
+      <tr><td id="cell_0_2"></td><td id="cell_1_2"></td><td id="cell_2_2"></td><td id="cell_3_2"></td><td id="cell_4_2"></td></tr>
+      <tr><td id="cell_0_3"></td><td id="cell_1_3"></td><td id="cell_2_3"></td><td id="cell_3_3"></td><td id="cell_4_3"></td></tr>
+      <tr><td id="cell_0_4"></td><td id="cell_1_4"></td><td id="cell_2_4"></td><td id="cell_3_4"></td><td id="cell_4_4"></td></tr>
+    </table>
+  </div>
+  </td>
+</tr>
 </table>
 
 <script>
+async function main() {
+  // Keras
+  let keras = new KerasModel();
+  keras.ready();
+
+  // Html
+  let main = document.getElementById('main');
+
+  let preview = document.getElementById('preview');
+  let overlay = document.getElementById("overlay");
+  let capture = document.getElementById('capture');
+
+  let camera = new Camera(preview);
+  const constraints = {
+    // width and height do not work on Safari. (2017-11-19)
+    video: {facingMode: "environment"},
+    audio: false
+  };
+  camera.initCamera(constraints).then(() => {
+    let size = Math.min(camera.width, camera.height);
+    initOverlay(overlay, size, size);
+    capture.addEventListener('click', () => {
+      let canvas = cameraToCanvas(camera);
+      predict(keras, canvas);
+    });
+  });
+}
+
+async function predict(keras, canvas) {
+  let myimage = new MyImage(canvas);
+
+  let images = myimage.getImages();
+
+  let results = [];
+  for (let image of images) {
+    let result = await keras.predict(new Float32Array(image));
+    results.push(getIndex(result));
+  }
+  fillResult(results);
+}
+
+function cameraToCanvas(camera) {
+  let size = Math.min(camera.width, camera.height);
+  let canvas = document.getElementById('snapshot');
+  camera.copyToCanvas(canvas, 0, 0, size, size);
+  return canvas;
+}
+
+class Camera {
+  constructor(preview) {
+    this.preview = preview;
+  }
+
+  initCamera(constraints = undefined) {
+    if (constraints == undefined) {
+      constraints = {video: true, audio: false};
+    }
+
+    return new Promise(async (resolve, reject) => {
+      let stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.preview.srcObject = stream;
+      this.preview.addEventListener('loadedmetadata', () => {
+        resolve();
+      });
+    });
+  }
+
+  copyToCanvas(canvas, x=0, y=0, w=this.width, h=this.height) {
+    let context = canvas.getContext('2d');
+    context.drawImage(this.preview, x, y, w, h, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+  }
+
+  get width() {
+    return this.preview.videoWidth;
+  }
+
+  get height() {
+    return this.preview.videoHeight;
+  }
+}
+
+function drawLine(context, x1, y1, x2, y2) {
+  context.beginPath();
+  context.moveTo(x1, y1);
+  context.lineTo(x2, y2);
+  context.stroke();
+}
+
+function initOverlay(overlay, width, height) {
+  overlay.width = width;
+  overlay.height = height;
+
+  const dx = width / 12;
+  const dy = height / 12;
+
+  let context = overlay.getContext('2d');
+  context.strokeStyle = '#FFF';
+  context.lineWidth = 3;
+  for (let i = 1; i <= 11; i += 2) {
+    drawLine(context, dx * i, dx, dx * i, dx * 11);
+    drawLine(context, dy, dy * i, dy * 11, dy * i);
+  }
+}
+
 class MyImage {
-  constructor(image) {
-    this.image = image;
+  constructor(canvas) {
+    this.canvas = canvas;
   }
 
   static async fromFile(filename) {
@@ -74,12 +231,15 @@ class MyImage {
 
   static async fromImage(image) {
     let promise = new Promise((resolve, reject) => {
-      image.onload = () => { resolve(new MyImage(image)); }
+      image.onload = () => {
+        let canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        let context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0);
+        resolve(new MyImage(canvas));
+      }
     });
-
-    if (image.complete) {
-      return new MyImage(image);
-    }
     return promise;
   }
 
@@ -110,7 +270,7 @@ class MyImage {
     canvas.width = dst_width;
     canvas.height = dst_height;
     let context = canvas.getContext('2d');
-    context.drawImage(this.image, x, y, width, height, 0, 0, dst_width, dst_height);
+    context.drawImage(this.canvas, x, y, width, height, 0, 0, dst_width, dst_height);
 
     let rgba = context.getImageData(0, 0, dst_width, dst_height);
     return this.dropAlpha(rgba.data, dst_width, dst_height);
@@ -160,7 +320,7 @@ function fillResult(result) {
     for (let x = 0; x < 5; x++) {
       let val = result[y*5 + x];
       let e = document.getElementById(`cell_${x}_${y}`);
-      e.classList.add(`class_${val}`);
+      e.className = `class_${val}`;
       e.innerText = `${val}`;
     }
   }
@@ -175,19 +335,6 @@ function getIndex(array) {
     }
   }
   return index;
-}
-
-async function main() {
-  let keras = new KerasModel();
-  let myimage = await MyImage.fromImage(document.getElementById('input'));
-  let images = myimage.getImages();
-
-  let results = [];
-  for (let image of images) {
-    let result = await keras.predict(new Float32Array(image));
-    results.push(getIndex(result));
-  }
-  fillResult(results);
 }
 
 main();
