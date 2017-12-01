@@ -18,8 +18,8 @@ import numpy as np
 import os
 
 batch_size = 32
-num_classes = 10
-epochs = 200
+num_classes = 7
+epochs = 2000
 data_augmentation = True
 num_predictions = 20
 # save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -57,19 +57,19 @@ def fit(data_file, save_dir):
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same',
+    model.add(Conv2D(64, (5, 5), padding='same',
                     input_shape=x_train.shape[1:]))
     model.add(Activation('relu'))
-    model.add(Conv2D(32, (3, 3)))
+    model.add(Conv2D(64, (5, 5)))
     model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(MaxPooling2D(pool_size=(3, 3)))
     model.add(Dropout(0.25))
 
-    model.add(Conv2D(64, (3, 3), padding='same'))
+    model.add(Conv2D(64, (5, 5), padding='same'))
     model.add(Activation('relu'))
-    model.add(Conv2D(64, (3, 3)))
+    model.add(Conv2D(64, (5, 5)))
     model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(MaxPooling2D(pool_size=(3, 3)))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
@@ -107,9 +107,9 @@ def fit(data_file, save_dir):
             featurewise_center=False,  # set input mean to 0 over the dataset
             samplewise_center=False,  # set each sample mean to 0
             featurewise_std_normalization=False,  # divide inputs by std of the dataset
-            samplewise_std_normalization=False,  # divide each input by its std
+            samplewise_std_normalization=True,  # divide each input by its std
             zca_whitening=False,  # apply ZCA whitening
-            rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+            rotation_range=2,  # randomly rotate images in the range (degrees, 0 to 180)
             width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
             height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
             horizontal_flip=True,  # randomly flip images
