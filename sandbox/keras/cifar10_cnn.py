@@ -18,8 +18,9 @@ import numpy as np
 import os
 
 batch_size = 32
-num_classes = 7
-epochs = 2000
+#num_classes = 7
+num_classes = 4
+epochs = 1000
 data_augmentation = True
 num_predictions = 20
 # save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -142,10 +143,10 @@ def fit(data_file, save_dir):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--input')
+  parser.add_argument('--input', default='data_batch_1.bin')
   parser.add_argument('--model_dir')
   args = parser.parse_args()
 
-  fit('data_batch_1.bin', args.model_dir)
+  fit(args.input, args.model_dir)
 
 main()

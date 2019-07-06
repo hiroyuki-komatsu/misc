@@ -50,7 +50,8 @@ class Cifar10Data(object):
 
 
 def generateData(data_dir, output_file):
-  labels = {'base': 0, 'forest': 1, 'grass': 2, 'pond': 3, 'rock': 4, 'sea': 5, 'weat': 6}
+  # labels = {'base': 0, 'forest': 1, 'grass': 2, 'pond': 3, 'rock': 4, 'sea': 5, 'weat': 6}
+  labels = {'0': 0, '1': 1, '2': 2, '3': 3}
   cifar10 = Cifar10Data()
 
   for basedir, dirs, files in os.walk(data_dir):

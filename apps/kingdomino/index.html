@@ -15,7 +15,7 @@
   padding: 0;
   width: 100%;
   min-width: 480px;
-  max-width: 80vh;
+  max-width: 60vh;
   height: auto;
   overflow: hidden;
   display: block;
@@ -59,6 +59,10 @@
   width: 40px;
   height: 40px;
   text-align: center;
+}
+
+small {
+  font-size: 10px;
 }
 
 .class_0 { /* base */
@@ -116,8 +120,11 @@
 <script>
 async function main() {
   // Keras
-  let keras = new KerasModel();
-  keras.ready();
+  let keras_area = new KerasModel('model/area');
+  keras_area.ready();
+
+  let keras_crown = new KerasModel('model/crown');
+  keras_crown.ready();
 
   // Html
   let main = document.getElementById('main');
@@ -137,22 +144,53 @@ async function main() {
     initOverlay(overlay, size, size);
     capture.addEventListener('click', () => {
       let canvas = cameraToCanvas(camera);
-      predict(keras, canvas);
+      window.setTimeout(async () => {
+        const start_time = Date.now();
+        await predict2(keras_area, keras_crown, canvas);
+        const end_time = Date.now();
+        console.log('time: ' + (end_time - start_time));
+      }, 1);
     });
   });
 }
 
-async function predict(keras, canvas) {
+// 13326
+// 13539
+async function predict(keras_area, keras_crown, canvas) {
   let myimage = new MyImage(canvas);
 
   let images = myimage.getImages();
 
-  let results = [];
+  let area_results = [];
+  let crown_results = [];
   for (let image of images) {
-    let result = await keras.predict(new Float32Array(image));
-    results.push(getIndex(result));
+    let image_array = new Float32Array(image);
+    let area_result = await keras_area.predict(image_array);
+    area_results.push(getIndex(area_result));
+
+    let crown_result = await keras_crown.predict(image_array);
+    crown_results.push(getIndex(crown_result));
   }
-  fillResult(results);
+  fillResult(area_results, crown_results);
+}
+
+async function predict2(keras_area, keras_crown, canvas) {
+  let myimage = new MyImage(canvas);
+
+  let images = myimage.getImages();
+
+  let area_results = [];
+  let crown_results = [];
+  for (let image of images) {
+    let image_array = new Float32Array(image);
+    //let area_result = await keras_area.predict(image_array);
+    //area_results.push(getIndex(area_result));
+    area_results.push(0);
+
+    let crown_result = await keras_crown.predict(image_array);
+    crown_results.push(getIndex(crown_result));
+  }
+  fillResult(area_results, crown_results);
 }
 
 function cameraToCanvas(camera) {
@@ -292,12 +330,12 @@ class MyImage {
 }
 
 class KerasModel {
-  constructor() {
+  constructor(model_path) {
     this.model = new KerasJS.Model({
       filepaths: {
-        model: 'model/model.json',
-        weights: 'model/model_weights.buf',
-        metadata: 'model/model_metadata.json'
+        model: model_path + '/model.json',
+        weights: model_path + '/model_weights.buf',
+        metadata: model_path + '/model_metadata.json'
       },
       // gpu: true
     });
@@ -310,18 +348,25 @@ class KerasModel {
 
   async predict(input) {
     await this.ready();
-    let result = await this.model.predict({'input': input});
-    return result['output'];
+    return new Promise((resolve, reject) => {
+      this.model.predict({'input': input}).then((result) => {
+        resolve(result['output']);
+      });
+    });
   }
+
 }
 
-function fillResult(result) {
+function fillResult(area_results, crown_results) {
+  const crowns = ['', '👑', '👑👑', '👑👑👑'];
   for (let y = 0; y < 5; y++) {
     for (let x = 0; x < 5; x++) {
-      let val = result[y*5 + x];
+      let i = y * 5 + x;
+      let area = area_results[i];
+      let crown = crown_results[i]
       let e = document.getElementById(`cell_${x}_${y}`);
-      e.className = `class_${val}`;
-      e.innerText = `${val}`;
+      e.className = `class_${area}`;
+      e.innerHTML = `<small>${crowns[crown]}<br/></small>${area}`;
     }
   }
 }
