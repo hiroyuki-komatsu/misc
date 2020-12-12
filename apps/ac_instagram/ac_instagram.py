@@ -1,6 +1,8 @@
+import io
 import json
 import os
 import re
+import sys
 import urllib.request
 
 import userdata
@@ -54,6 +56,7 @@ def getPayload(entry):
     payload = f'''{{
   "username": "どうぶつの森 公式インスタグラム",
   "text": "{text}",
+  "unfurl_media": false,
   "attachments": [
       {{ "image_url": "{entry['image']}" }}
    ]
@@ -75,14 +78,26 @@ def writeCachedShortcode(shortcode):
         file.write(shortcode)
 
 
+def printPayload(payload):
+    # stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    # print(payload, file=stdout)
+    print(payload)
+
+
 def sendMessageToSlack(entry):
     payload = getPayload(entry)
-    print(payload)
+    # printPayload(payload)
     urllib.request.urlopen(SLACK_WEBHOOK, payload.encode('utf-8'))
 
 
 def main():
-    entries = AcInstagram.getEntries(INSTAGRAM_USERNAME)
+    try:
+        entries = AcInstagram.getEntries(INSTAGRAM_USERNAME)
+    except urllib.error.HTTPError as err:
+        print(err.code, file=sys.stderr)
+        print(err.reason, file=sys.stderr)
+        print(err.headers, file=sys.stderr)
+        return 1
     cached_shortcode = readCachedShortcode()
     for entry in entries:
         if entry['shortcode'] == cached_shortcode:
