@@ -2,3 +2,5 @@
 .DS_Store
 .firebaserc
 firebase_public/
+__pycache__
+apps/ac_instagram/launchd.plist
