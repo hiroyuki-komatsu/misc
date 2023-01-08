@@ -7,32 +7,32 @@ assignees: ''
 
 ---
 
-**Describe the bug**
+**Description**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+**Reproduce steps**
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
-3. Scroll down to '....'
-4. See error
+3. Type '....'
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
+**Actual behavior**
+A clear and concise description of what you actually got.
+
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Version or commit-id**
+[e.g. Mozc-2.28.4960.100+24.11.oss or d50a8b9ae28c4fba265f734b38bc5ae392fe4d25]
+You can get the version string by converting "Version" or "ばーじょん".
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+**Environment:**
+ - OS: [e.g. Ubuntu 20.04, macOS 13.1, etc]
+ - IMF (for Linux) [e.g. Ibus, Fcitx, etc]
+ - Related Applications [e.g. Chromium 109, gedit, etc]
 
 **Additional context**
 Add any other context about the problem here.
