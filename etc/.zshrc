@@ -180,3 +180,7 @@ appendpath /usr/local/go/bin/
 # For AppEngine for Go lang
 appendpath /Users/komatsu/bin/go_appengine
 
+# For Flutter
+appendpath ~/dev/flutter/bin
+
+
