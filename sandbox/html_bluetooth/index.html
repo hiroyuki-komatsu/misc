@@ -1,0 +1,20 @@
+<html>
+  <body>
+    <button id="connect">Connect</button>
+  </body>
+  <script>
+async function requestDevice() {
+    console.log('Execute : requestDevice');
+    var device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices:true,
+    }).then(device => device.gatt.connect());
+}
+
+function onClick() {
+  requestDevice();
+}
+
+let connect = document.getElementById("connect");
+connect.addEventListener('click', onClick);
+  </script>
+</html>
