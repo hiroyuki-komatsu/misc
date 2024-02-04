@@ -7,6 +7,14 @@ async function requestDevice() {
     console.log('Execute : requestDevice');
     var device = await navigator.bluetooth.requestDevice({
         acceptAllDevices:true,
+        // 0x1812 is "Human Interface Device", but it is in the blocklist.
+        // https://github.com/WebBluetoothCG/registries/blob/master/gatt_blocklist.txt
+        // 
+        // optionalServices: [0x1812],
+        // filters: [
+        //  { services: [0x1812] },
+        //   { namePrefix: "(BMP)" },
+        // ],
     }).then(device => device.gatt.connect());
 }
 
