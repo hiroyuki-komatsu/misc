@@ -6,11 +6,42 @@ function addEntry(tab) {
   });
 }
 
+async function updateIcon(tab) {
+  console.log("tab.url: " + tab.url);
+  console.log("tab.title: " + tab.title);
+  if (!tab.url.startsWith("http")) {
+    chrome.action.setIcon({path: {"128": "icon.png"}});
+    return;
+  }
+  chrome.readingList.query({ url: tab.url }, (entries) => {
+    if (entries && entries.length > 0) {
+      chrome.action.setIcon({path: {"128": "icon_added.png"}});
+    } else {
+      chrome.action.setIcon({path: {"128": "icon.png"}});
+    }
+  });
+}
+
+async function onTabActivated(info) {
+  chrome.tabs.get(info.tabId, updateIcon);
+}
+
+async function onWindowFocusChanged(windowId) {
+  chrome.tabs.query({"active": true, "windowId": windowId}, (tabs) => {
+    if (tabs.length > 0) {
+      updateIcon(tabs[0]);
+    }
+  });
+}
+
 function openSummary() {
   chrome.tabs.create({"url": "readinglist.html"});
 }
 
 chrome.action.onClicked.addListener(addEntry);
+
+chrome.tabs.onActivated.addListener(onTabActivated);
+chrome.windows.onFocusChanged.addListener(onWindowFocusChanged);
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
