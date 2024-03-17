@@ -1,5 +1,7 @@
-# <img src="crx/icon.png" width="48" height="48"> ReadingList
+# <img src="crx/icon.png" width="32" height="32"> ReadingList
 
-ReadingList is a Chrome Extension to list up your reading list per week.
+ReadingList is a Chrome Extension to use the Reading List like a bookmark
+as well as the mobile version of Chrome.
 
-You can open a new page of reading list on clicking the button.
+"Weekly summary" on the right click menu opens a new page of reading list items
+per week.
