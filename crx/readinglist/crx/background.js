@@ -11,8 +11,8 @@ function addEntry(tab) {
   });
 }
 
-function updateEntry(tab) {
-  checkEntry(tab, (tab, isAdded) => {
+function toggleEntry(tab) {
+  checkEntry(tab, (isAdded) => {
     if (isAdded) {
       chrome.readingList.removeEntry({url: tab.url});
       setIcon(false);
@@ -23,27 +23,22 @@ function updateEntry(tab) {
   });
 }
 
-// callback takes tab and boolean.
+// callback takes boolean.
 async function checkEntry(tab, callback) {
   if (!tab.url.startsWith("http")) {
-    callback(tab, false);
+    callback(false);
     return;
   }
   chrome.readingList.query({ url: tab.url }, (entries) => {
-    if (entries && entries.length > 0) {
-      callback(tab, true);
-    } else {
-      callback(tab, false);
-    }
+    const hasEntry = (entries && entries.length > 0);
+    callback(hasEntry);
   });
 }
 
 async function updateIcon(tab) {
   console.log("tab.url: " + tab.url);
   console.log("tab.title: " + tab.title);
-  checkEntry(tab, (tab, isAdded) => {
-    setIcon(isAdded);
-  });
+  checkEntry(tab, setIcon);
 }
 
 async function onTabActivated(info) {
@@ -62,7 +57,7 @@ function openSummary() {
   chrome.tabs.create({"url": "readinglist.html"});
 }
 
-chrome.action.onClicked.addListener(updateEntry);
+chrome.action.onClicked.addListener(toggleEntry);
 
 chrome.tabs.onActivated.addListener(onTabActivated);
 chrome.windows.onFocusChanged.addListener(onWindowFocusChanged);
