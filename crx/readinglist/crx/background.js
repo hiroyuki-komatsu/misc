@@ -6,6 +6,25 @@ function addEntry(tab) {
   });
 }
 
+function updateEntry(tab) {
+  if (!tab.url.startsWith("http")) {
+    return;
+  }
+  chrome.readingList.query({ url: tab.url }, (entries) => {
+    if (entries && entries.length > 0) {
+      chrome.readingList.removeEntry({url: tab.url});
+      chrome.action.setIcon({path: {"128": "icon.png"}});
+    } else {
+      chrome.readingList.addEntry({
+        title: tab.title,
+        url: tab.url,
+        hasBeenRead: false,
+      });
+      chrome.action.setIcon({path: {"128": "icon_added.png"}});
+    }
+  });
+}
+
 async function updateIcon(tab) {
   console.log("tab.url: " + tab.url);
   console.log("tab.title: " + tab.title);
@@ -38,7 +57,7 @@ function openSummary() {
   chrome.tabs.create({"url": "readinglist.html"});
 }
 
-chrome.action.onClicked.addListener(addEntry);
+chrome.action.onClicked.addListener(updateEntry);
 
 chrome.tabs.onActivated.addListener(onTabActivated);
 chrome.windows.onFocusChanged.addListener(onWindowFocusChanged);
