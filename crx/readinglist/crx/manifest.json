@@ -2,8 +2,9 @@
   "name": "Reading List",
   "description" : "Reading List",
   "permissions": [
-    "tabs",
-    "readingList"
+    "contextMenus",
+    "readingList",
+    "tabs"
   ],
   "version": "0.1",
   "manifest_version": 3,
