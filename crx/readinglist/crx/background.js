@@ -1,3 +1,8 @@
+function setIcon(isAdded) {
+  const icon = isAdded ? "icon_added.png" : "icon.png";
+  chrome.action.setIcon({path: {"128": icon}});
+}
+
 function addEntry(tab) {
   chrome.readingList.addEntry({
     title: tab.title,
@@ -7,20 +12,28 @@ function addEntry(tab) {
 }
 
 function updateEntry(tab) {
+  checkEntry(tab, (tab, isAdded) => {
+    if (isAdded) {
+      chrome.readingList.removeEntry({url: tab.url});
+      setIcon(false);
+    } else {
+      addEntry(tab);
+      setIcon(true);
+    }
+  });
+}
+
+// callback takes tab and boolean.
+async function checkEntry(tab, callback) {
   if (!tab.url.startsWith("http")) {
+    callback(tab, false);
     return;
   }
   chrome.readingList.query({ url: tab.url }, (entries) => {
     if (entries && entries.length > 0) {
-      chrome.readingList.removeEntry({url: tab.url});
-      chrome.action.setIcon({path: {"128": "icon.png"}});
+      callback(tab, true);
     } else {
-      chrome.readingList.addEntry({
-        title: tab.title,
-        url: tab.url,
-        hasBeenRead: false,
-      });
-      chrome.action.setIcon({path: {"128": "icon_added.png"}});
+      callback(tab, false);
     }
   });
 }
@@ -28,16 +41,8 @@ function updateEntry(tab) {
 async function updateIcon(tab) {
   console.log("tab.url: " + tab.url);
   console.log("tab.title: " + tab.title);
-  if (!tab.url.startsWith("http")) {
-    chrome.action.setIcon({path: {"128": "icon.png"}});
-    return;
-  }
-  chrome.readingList.query({ url: tab.url }, (entries) => {
-    if (entries && entries.length > 0) {
-      chrome.action.setIcon({path: {"128": "icon_added.png"}});
-    } else {
-      chrome.action.setIcon({path: {"128": "icon.png"}});
-    }
+  checkEntry(tab, (tab, isAdded) => {
+    setIcon(isAdded);
   });
 }
 
