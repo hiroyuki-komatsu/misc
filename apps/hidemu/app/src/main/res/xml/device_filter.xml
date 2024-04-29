@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <usb-device vendor-id="13015" product-id="1" /> <!-- 0x32D7, 0x01 USB2IIC_CTP_CONTROL (wch.cn) -->
+</resources>
