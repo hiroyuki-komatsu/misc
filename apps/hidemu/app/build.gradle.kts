@@ -48,6 +48,7 @@ android {
 
 dependencies {
 
+    implementation(libs.usbSerial)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
