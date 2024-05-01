@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -66,20 +67,115 @@ class MainActivity : ComponentActivity() {
         if (packet.size != 7) {
             return "invalid size"
         }
-        val code : Byte = packet[5]
+        val code: Byte = packet[5]
         return when (code) {
-            0x00.toByte() -> { "success"}
-            0xE1.toByte() -> { "timeout error"}
-            0xE2.toByte() -> { "header bytes error"}
-            0xE3.toByte() -> { "command code error"}
-            0xE4.toByte() -> { "invalid parity error"}
-            0xE5.toByte() -> { "parameter error"}
-            0xE6.toByte() -> { "operation error"}
-            else -> { "unknown" }
+            0x00.toByte() -> {
+                "success"
+            }
+
+            0xE1.toByte() -> {
+                "timeout error"
+            }
+
+            0xE2.toByte() -> {
+                "header bytes error"
+            }
+
+            0xE3.toByte() -> {
+                "command code error"
+            }
+
+            0xE4.toByte() -> {
+                "invalid parity error"
+            }
+
+            0xE5.toByte() -> {
+                "parameter error"
+            }
+
+            0xE6.toByte() -> {
+                "operation error"
+            }
+
+            else -> {
+                "unknown"
+            }
         }
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
+    private fun sendKeyDown(port: UsbSerialPort, keyDown: ByteArray): String {
+        var logs: Array<String> = arrayOf("")
+        val buffer1 = ByteArray(size = 16)
+
+        logs += "# key down"
+        port.write(keyDown, WRITE_WAIT_MILLIS)
+        logs += "sent: " + getPacketInfo(keyDown)
+        val len1 = port.read(buffer1, READ_WAIT_MILLIS)
+        val readPacket1 = buffer1.sliceArray(0..<len1)
+        logs += "read: " + getPacketInfo(readPacket1)
+        logs += checkReadPacket(readPacket1) + "\n"
+
+        return logs.joinToString(separator = "\n")
+    }
+    private fun sendKeyUp(port: UsbSerialPort): String {
+        var logs: Array<String> = arrayOf("")
+        val keyUp = byteArrayOf(
+            0x57, 0xAB.toByte(), 0, 0x02, 0x08, 0x00, 0, 0x00, 0, 0, 0, 0, 0, 0x0C
+        )
+        val buffer2 = ByteArray(size = 16)
+
+        logs += "# key up"
+        port.write(keyUp, WRITE_WAIT_MILLIS)
+        logs += "sent: " + getPacketInfo(keyUp)
+        val len2 = port.read(buffer2, READ_WAIT_MILLIS)
+        val readPacket2 = buffer2.sliceArray(0..<len2)
+        logs += "read: " + getPacketInfo(readPacket2)
+        logs += checkReadPacket(readPacket2) + "\n"
+        return logs.joinToString(separator = "\n")
+    }
+    private fun sendKey(port: UsbSerialPort, keyDown: ByteArray): String {
+        var logs: Array<String> = arrayOf("")
+        val keyUp = byteArrayOf(
+            0x57, 0xAB.toByte(), 0, 0x02, 0x08, 0x00, 0, 0x00, 0, 0, 0, 0, 0, 0x0C
+        )
+        val buffer1 = ByteArray(size = 16)
+        val buffer2 = ByteArray(size = 16)
+
+        logs += "# key down"
+        port.write(keyDown, WRITE_WAIT_MILLIS)
+        logs += "sent: " + getPacketInfo(keyDown)
+        val len1 = port.read(buffer1, READ_WAIT_MILLIS)
+        val readPacket1 = buffer1.sliceArray(0..<len1)
+        logs += "read: " + getPacketInfo(readPacket1)
+        logs += checkReadPacket(readPacket1) + "\n"
+
+        logs += "# key up"
+        port.write(keyUp, WRITE_WAIT_MILLIS)
+        logs += "sent: " + getPacketInfo(keyUp)
+        val len2 = port.read(buffer2, READ_WAIT_MILLIS)
+        val readPacket2 = buffer2.sliceArray(0..<len2)
+        logs += "read: " + getPacketInfo(readPacket2)
+        logs += checkReadPacket(readPacket2) + "\n"
+        return logs.joinToString(separator = "\n")
+    }
+
+    private fun getParity(packet: ByteArray): Byte {
+        var sum = 0
+        for (byte in packet) {
+            sum += (byte.toInt() and 0xFF)
+        }
+        return (sum and 0xFF).toByte()
+    }
+
+    private fun createPacketForKeyDown(modifiers: Byte, hidCode: Byte): ByteArray {
+        val packet = byteArrayOf(
+            0x57, 0xAB.toByte(), 0x00, 0x02, 0x08, modifiers,
+            0x00, hidCode, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        )
+        packet[packet.size - 1] = getParity(packet)
+        return packet
+    }
+
     private fun onKeyInput(char: String): String {
         var logs: Array<String> = arrayOf("onKeyInput: $char", "")
         Log.d("onKeyInput", char)
@@ -132,38 +228,29 @@ class MainActivity : ComponentActivity() {
             return logs.joinToString(separator = "\n")
         }
 
-        val port = driver.ports[0] // Most devices have just one port (port 0)
+        val port = driver.ports[0]
         port.open(connection)
 
         val baudRate = 9600
         val dataBits = 8
         port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
 
-        // Shift + a
-        val keyDown = byteArrayOf(
-            0x57, 0xAB.toByte(), 0, 0x02, 0x08, 0x02, 0, 0x04, 0, 0, 0, 0, 0, 0x12
-        )
-        val keyUp = byteArrayOf(
-            0x57, 0xAB.toByte(), 0, 0x02, 0x08, 0x00, 0, 0x00, 0, 0, 0, 0, 0, 0x0C
-        )
-        val buffer1 = ByteArray(size = 16)
-        val buffer2 = ByteArray(size = 16)
-
-        logs += "# key down"
-        port.write(keyDown, WRITE_WAIT_MILLIS)
-        logs += "sent: " + getPacketInfo(keyDown)
-        val len1 = port.read(buffer1, READ_WAIT_MILLIS)
-        val readPacket1 = buffer1.sliceArray(0..<len1)
-        logs += "read: " + getPacketInfo(readPacket1)
-        logs += checkReadPacket(readPacket1) + "\n"
-
-        logs += "# key up"
-        port.write(keyUp, WRITE_WAIT_MILLIS)
-        logs += "sent: " + getPacketInfo(keyUp)
-        val len2 = port.read(buffer2, READ_WAIT_MILLIS)
-        val readPacket2 = buffer2.sliceArray(0..<len2)
-        logs += "read: " + getPacketInfo(readPacket2)
-        logs += checkReadPacket(readPacket2) + "\n"
+        if (char == "A") {
+            // Shift + a
+            val keyDownShift = createPacketForKeyDown(0x02, 0x00)
+            logs += sendKeyDown(port, keyDownShift)
+            val keyDownA = createPacketForKeyDown(0x02, 0x04)
+            logs += sendKeyDown(port, keyDownA)
+            logs += sendKeyUp(port)
+        } else if (char == "a") {
+            // a
+            val keyDownA = createPacketForKeyDown(0x00, 0x04)
+            logs += sendKey(port, keyDownA)
+        } else {
+            // Backspace (0x2A)
+            val keyDownBs = createPacketForKeyDown(0x00, 0x2A)
+            logs += sendKey(port, keyDownBs)
+        }
 
         port.close()
         val msg = "done"
@@ -178,13 +265,31 @@ fun Keyboard(onKeyInput: (String) -> String) {
     val context = LocalContext.current
     val (message, setMessage) = remember { mutableStateOf("") }
     Column {
-        Button(onClick = {
-            Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
-            Log.d("Button", "onClick")
-            val log = onKeyInput("a")
-            setMessage(log)
-        }) {
-            Text("Button")
+        Row {
+            Button(onClick = {
+                Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
+                Log.d("Button", "onClick(a)")
+                val log = onKeyInput("a")
+                setMessage(log)
+            }) {
+                Text("a")
+            }
+            Button(onClick = {
+                Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
+                Log.d("Button", "onClick(A)")
+                val log = onKeyInput("A")
+                setMessage(log)
+            }) {
+                Text("A")
+            }
+            Button(onClick = {
+                Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
+                Log.d("Button", "onClick(BS)")
+                val log = onKeyInput("BS")
+                setMessage(log)
+            }) {
+                Text("BS")
+            }
         }
         Text(
             text = message
