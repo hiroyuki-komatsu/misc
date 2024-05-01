@@ -117,6 +117,7 @@ class MainActivity : ComponentActivity() {
 
         return logs.joinToString(separator = "\n")
     }
+
     private fun sendKeyUp(port: UsbSerialPort): String {
         var logs: Array<String> = arrayOf("")
         val keyUp = byteArrayOf(
@@ -133,6 +134,7 @@ class MainActivity : ComponentActivity() {
         logs += checkReadPacket(readPacket2) + "\n"
         return logs.joinToString(separator = "\n")
     }
+
     private fun sendKey(port: UsbSerialPort, keyDown: ByteArray): String {
         var logs: Array<String> = arrayOf("")
         val keyUp = byteArrayOf(
@@ -235,21 +237,27 @@ class MainActivity : ComponentActivity() {
         val dataBits = 8
         port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
 
-        if (char == "A") {
-            // Shift + a
-            val keyDownShift = createPacketForKeyDown(0x02, 0x00)
-            logs += sendKeyDown(port, keyDownShift)
-            val keyDownA = createPacketForKeyDown(0x02, 0x04)
-            logs += sendKeyDown(port, keyDownA)
-            logs += sendKeyUp(port)
-        } else if (char == "a") {
-            // a
-            val keyDownA = createPacketForKeyDown(0x00, 0x04)
-            logs += sendKey(port, keyDownA)
-        } else {
-            // Backspace (0x2A)
-            val keyDownBs = createPacketForKeyDown(0x00, 0x2A)
-            logs += sendKey(port, keyDownBs)
+        when (char) {
+            "A" -> {
+                // Shift + a
+                val keyDownShift = createPacketForKeyDown(0x02, 0x00)
+                logs += sendKeyDown(port, keyDownShift)
+                val keyDownA = createPacketForKeyDown(0x02, 0x04)
+                logs += sendKeyDown(port, keyDownA)
+                logs += sendKeyUp(port)
+            }
+
+            "a" -> {
+                // a
+                val keyDownA = createPacketForKeyDown(0x00, 0x04)
+                logs += sendKey(port, keyDownA)
+            }
+
+            else -> {
+                // Backspace (0x2A)
+                val keyDownBs = createPacketForKeyDown(0x00, 0x2A)
+                logs += sendKey(port, keyDownBs)
+            }
         }
 
         port.close()
