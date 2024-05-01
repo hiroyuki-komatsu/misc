@@ -25,11 +25,13 @@ import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import org.taiyaki.hidemu.ui.theme.HIDEmulatorTheme
 
+const val VENDOR_ID: Int = 0x1A86
+const val PRODUCT_ID: Int = 0x7523
+const val WRITE_WAIT_MILLIS: Int = 20
+const val READ_WAIT_MILLIS: Int = 20
 
 class MainActivity : ComponentActivity() {
     private lateinit var manager: UsbManager
-    private val vendorId: Int = 0x1A86
-    private val productId: Int = 0x7523
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,8 +39,7 @@ class MainActivity : ComponentActivity() {
             HIDEmulatorTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     Keyboard(onKeyInput = ::onKeyInput)
                 }
@@ -57,6 +58,28 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun getPacketInfo(packet: ByteArray): String {
+        return packet.joinToString(", ") { String.format("%02X", it) }
+    }
+
+    private fun checkReadPacket(packet: ByteArray): String {
+        if (packet.size != 7) {
+            return "invalid size"
+        }
+        val code : Byte = packet[5]
+        return when (code) {
+            0x00.toByte() -> { "success"}
+            0xE1.toByte() -> { "timeout error"}
+            0xE2.toByte() -> { "header bytes error"}
+            0xE3.toByte() -> { "command code error"}
+            0xE4.toByte() -> { "invalid parity error"}
+            0xE5.toByte() -> { "parameter error"}
+            0xE6.toByte() -> { "operation error"}
+            else -> { "unknown" }
+        }
+    }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
     private fun onKeyInput(char: String): String {
         var logs: Array<String> = arrayOf("onKeyInput: $char", "")
         Log.d("onKeyInput", char)
@@ -81,7 +104,7 @@ class MainActivity : ComponentActivity() {
         for (candidate in drivers) {
             val device: UsbDevice = candidate.device
             logs += getDeviceInfo(device)
-            if (device.vendorId == vendorId && device.productId == productId) {
+            if (device.vendorId == VENDOR_ID && device.productId == PRODUCT_ID) {
                 driver = candidate
             }
         }
@@ -111,7 +134,37 @@ class MainActivity : ComponentActivity() {
 
         val port = driver.ports[0] // Most devices have just one port (port 0)
         port.open(connection)
-        port.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+
+        val baudRate: Int = 9600
+        val dataBits: Int = 8
+        port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+
+        // Shift + a
+        val keyDown = byteArrayOf(
+            0x57, 0xAB.toByte(), 0, 0x02, 0x08, 0x02, 0, 0x04, 0, 0, 0, 0, 0, 0x12
+        )
+        val keyUp = byteArrayOf(
+            0x57, 0xAB.toByte(), 0, 0x02, 0x08, 0x00, 0, 0x00, 0, 0, 0, 0, 0, 0x0C
+        )
+        val buffer1 = ByteArray(size = 16)
+        val buffer2 = ByteArray(size = 16)
+
+        logs += "# key down"
+        port.write(keyDown, WRITE_WAIT_MILLIS);
+        logs += "sent: " + getPacketInfo(keyDown)
+        val len1 = port.read(buffer1, READ_WAIT_MILLIS);
+        val readPacket1 = buffer1.sliceArray(0..<len1)
+        logs += "read: " + getPacketInfo(readPacket1)
+        logs += checkReadPacket(readPacket1) + "\n"
+
+        logs += "# key up"
+        port.write(keyUp, WRITE_WAIT_MILLIS);
+        logs += "sent: " + getPacketInfo(keyUp)
+        val len2 = port.read(buffer2, READ_WAIT_MILLIS);
+        val readPacket2 = buffer2.sliceArray(0..<len2)
+        logs += "read: " + getPacketInfo(readPacket2)
+        logs += checkReadPacket(readPacket2) + "\n"
+
         port.close()
         val msg = "done"
         Log.d("onKeyInput", msg)
