@@ -14,6 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,43 +44,49 @@ class MainActivity : ComponentActivity() {
         manager = getSystemService(Context.USB_SERVICE) as UsbManager
     }
 
-    private fun onKeyInput(char: String) {
+    private fun onKeyInput(char: String): String {
         Log.d("onKeyInput", char)
 
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
         if (availableDrivers.isEmpty()) {
-            Log.d("onKeyInput", "no available default drivers")
-            return
+            val msg = "no available default drivers"
+            Log.d("onKeyInput", msg)
+            return msg
         }
 
         val driver: UsbSerialDriver = availableDrivers[0]
         val connection = manager.openDevice(driver.device)
         if (connection == null) {
-            Log.d("onKeyInput", "no connection")
-            return
+            val msg = "no connection"
+            Log.d("onKeyInput", msg)
+            return msg
         }
 
         val port = driver.ports[0] // Most devices have just one port (port 0)
         port.open(connection)
         port.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
         port.close()
-        Log.d("onKeyInput", "done")
+        val msg = "done"
+        Log.d("onKeyInput", msg)
+        return msg
     }
 }
 
 @Composable
-fun Keyboard(onKeyInput: (String) -> Unit) {
+fun Keyboard(onKeyInput: (String) -> String) {
     val context = LocalContext.current
+    val (message, setMessage) = remember { mutableStateOf("") }
     Column {
         Button(onClick = {
             Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
             Log.d("Button", "onClick")
-            onKeyInput("a")
+            val log = onKeyInput("a")
+            setMessage(log)
         }) {
             Text("Button")
         }
         Text(
-            text = "Hello"
+            text = message
         )
     }
 }
@@ -87,6 +95,6 @@ fun Keyboard(onKeyInput: (String) -> Unit) {
 @Composable
 fun KeyboardPreview() {
     HIDEmulatorTheme {
-        Keyboard(onKeyInput = {})
+        Keyboard(onKeyInput = { "" })
     }
 }
