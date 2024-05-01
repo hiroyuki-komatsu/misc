@@ -1,6 +1,7 @@
 package org.taiyaki.hidemu
 
 import android.content.Context
+import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.util.Log
@@ -44,14 +45,35 @@ class MainActivity : ComponentActivity() {
         manager = getSystemService(Context.USB_SERVICE) as UsbManager
     }
 
+    private fun getDeviceInfo(device: UsbDevice): String {
+        return String.format(
+            "%s: VID=0x%X, PID=0x%X",
+            device.deviceName,
+            device.vendorId,
+            device.productId
+        )
+    }
+
     private fun onKeyInput(char: String): String {
+        var logs: Array<String> = arrayOf("onKeyInput: $char")
         Log.d("onKeyInput", char)
+
+        logs += "# connected devices:"
+        for (item in manager.deviceList) {
+            logs += getDeviceInfo(item.value)
+        }
 
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
         if (availableDrivers.isEmpty()) {
             val msg = "no available default drivers"
             Log.d("onKeyInput", msg)
-            return msg
+            logs += msg
+            return logs.joinToString(separator = "\n")
+        }
+
+        logs += "# available drivers:"
+        for (driver in availableDrivers) {
+            logs += getDeviceInfo(driver.device)
         }
 
         val driver: UsbSerialDriver = availableDrivers[0]
@@ -59,7 +81,8 @@ class MainActivity : ComponentActivity() {
         if (connection == null) {
             val msg = "no connection"
             Log.d("onKeyInput", msg)
-            return msg
+            logs += msg
+            return logs.joinToString(separator = "\n")
         }
 
         val port = driver.ports[0] // Most devices have just one port (port 0)
@@ -68,7 +91,8 @@ class MainActivity : ComponentActivity() {
         port.close()
         val msg = "done"
         Log.d("onKeyInput", msg)
-        return msg
+        logs += msg
+        return logs.joinToString(separator = "\n")
     }
 }
 
