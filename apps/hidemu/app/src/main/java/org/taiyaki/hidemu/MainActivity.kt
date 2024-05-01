@@ -28,6 +28,8 @@ import org.taiyaki.hidemu.ui.theme.HIDEmulatorTheme
 
 class MainActivity : ComponentActivity() {
     private lateinit var manager: UsbManager
+    private val vendorId: Int = 0x1A86
+    private val productId: Int = 0x7523
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +49,8 @@ class MainActivity : ComponentActivity() {
 
     private fun getDeviceInfo(device: UsbDevice): String {
         return String.format(
-            "%s: VID=0x%X, PID=0x%X",
+            "%s(%s): VID=0x%X, PID=0x%X",
+            device.productName,
             device.deviceName,
             device.vendorId,
             device.productId
@@ -55,28 +58,49 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun onKeyInput(char: String): String {
-        var logs: Array<String> = arrayOf("onKeyInput: $char")
+        var logs: Array<String> = arrayOf("onKeyInput: $char", "")
         Log.d("onKeyInput", char)
 
         logs += "# connected devices:"
         for (item in manager.deviceList) {
             logs += getDeviceInfo(item.value)
         }
+        logs += ""
 
-        val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
-        if (availableDrivers.isEmpty()) {
+        val drivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
+        if (drivers.isEmpty()) {
             val msg = "no available default drivers"
             Log.d("onKeyInput", msg)
             logs += msg
             return logs.joinToString(separator = "\n")
         }
 
+        var driver: UsbSerialDriver? = null
+
         logs += "# available drivers:"
-        for (driver in availableDrivers) {
-            logs += getDeviceInfo(driver.device)
+        for (candidate in drivers) {
+            val device: UsbDevice = candidate.device
+            logs += getDeviceInfo(device)
+            if (device.vendorId == vendorId && device.productId == productId) {
+                driver = candidate
+            }
+        }
+        logs += ""
+
+        if (driver == null) {
+            val msg = "no target drivers"
+            Log.d("onKeyInput", msg)
+            logs += msg
+            return logs.joinToString(separator = "\n")
         }
 
-        val driver: UsbSerialDriver = availableDrivers[0]
+        if (!manager.hasPermission(driver.device)) {
+            val msg = "no permission"
+            Log.d("onKeyInput", msg)
+            logs += msg
+            return logs.joinToString(separator = "\n")
+        }
+
         val connection = manager.openDevice(driver.device)
         if (connection == null) {
             val msg = "no connection"
