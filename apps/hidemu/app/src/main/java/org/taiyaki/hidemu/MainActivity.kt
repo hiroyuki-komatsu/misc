@@ -22,33 +22,36 @@ import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import org.taiyaki.hidemu.ui.theme.HIDEmulatorTheme
 
+
 class MainActivity : ComponentActivity() {
-    private lateinit var manager : UsbManager
+    private lateinit var manager: UsbManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             HIDEmulatorTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     Keyboard(onKeyInput = ::onKeyInput)
-                    // Keyboard(onKeyInput = { Log.d("onKeyInput", "place holder")})
                 }
             }
         }
         manager = getSystemService(Context.USB_SERVICE) as UsbManager
     }
 
-    private fun onKeyInput(char : String) {
+    private fun onKeyInput(char: String) {
         Log.d("onKeyInput", char)
-        val availableDrivers : List<UsbSerialDriver> =
-            UsbSerialProber.getDefaultProber().findAllDrivers(manager)
+
+        val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
         if (availableDrivers.isEmpty()) {
-            Log.d("onKeyInput", "no availableDrivers")
+            Log.d("onKeyInput", "no available default drivers")
             return
         }
-        val driver : UsbSerialDriver = availableDrivers[0]
+
+        val driver: UsbSerialDriver = availableDrivers[0]
         val connection = manager.openDevice(driver.device)
         if (connection == null) {
             Log.d("onKeyInput", "no connection")
@@ -82,7 +85,7 @@ fun Keyboard(onKeyInput: (String) -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun KeyboardPreview() {
     HIDEmulatorTheme {
         Keyboard(onKeyInput = {})
     }
