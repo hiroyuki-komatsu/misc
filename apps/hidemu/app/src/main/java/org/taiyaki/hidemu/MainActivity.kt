@@ -31,6 +31,528 @@ const val PRODUCT_ID: Int = 0x7523
 const val WRITE_WAIT_MILLIS: Int = 20
 const val READ_WAIT_MILLIS: Int = 20
 
+const val KEY_A = 0x04 // Keyboard a and A
+const val KEY_B = 0x05 // Keyboard b and B
+const val KEY_C = 0x06 // Keyboard c and C
+const val KEY_D = 0x07 // Keyboard d and D
+const val KEY_E = 0x08 // Keyboard e and E
+const val KEY_F = 0x09 // Keyboard f and F
+const val KEY_G = 0x0A // Keyboard g and G
+const val KEY_H = 0x0B // Keyboard h and H
+const val KEY_I = 0x0C // Keyboard i and I
+const val KEY_J = 0x0D // Keyboard j and J
+const val KEY_K = 0x0E // Keyboard k and K
+const val KEY_L = 0x0F // Keyboard l and L
+const val KEY_M = 0x10 // Keyboard m and M
+const val KEY_N = 0x11 // Keyboard n and N
+const val KEY_O = 0x12 // Keyboard o and O
+const val KEY_P = 0x13 // Keyboard p and P
+const val KEY_Q = 0x14 // Keyboard q and Q
+const val KEY_R = 0x15 // Keyboard r and R
+const val KEY_S = 0x16 // Keyboard s and S
+const val KEY_T = 0x17 // Keyboard t and T
+const val KEY_U = 0x18 // Keyboard u and U
+const val KEY_V = 0x19 // Keyboard v and V
+const val KEY_W = 0x1A // Keyboard w and W
+const val KEY_X = 0x1B // Keyboard x and X
+const val KEY_Y = 0x1C // Keyboard y and Y
+const val KEY_Z = 0x1D // Keyboard z and Z
+const val KEY_1 = 0x1E // Keyboard 1 and !
+const val KEY_2 = 0x1F // Keyboard 2 and @
+const val KEY_3 = 0x20 // Keyboard 3 and #
+const val KEY_4 = 0x21 // Keyboard 4 and $
+const val KEY_5 = 0x22 // Keyboard 5 and %
+const val KEY_6 = 0x23 // Keyboard 6 and ^
+const val KEY_7 = 0x24 // Keyboard 7 and &
+const val KEY_8 = 0x25 // Keyboard 8 and *
+const val KEY_9 = 0x26 // Keyboard 9 and (
+const val KEY_0 = 0x27 // Keyboard 0 and )
+const val KEY_ENTER = 0x28      // Keyboard Return (ENTER)
+const val KEY_ESC = 0x29        // Keyboard ESCAPE
+const val KEY_BACKSPACE = 0x2A  // Keyboard DELETE (Backspace)
+const val KEY_TAB = 0x2B        // Keyboard Tab
+const val KEY_SPACE = 0x2C      // Keyboard Spacebar
+const val KEY_MINUS = 0x2D      // Keyboard - and (underscore)
+const val KEY_EQUAL = 0x2E      // Keyboard = and +
+const val KEY_LEFTBRACE = 0x2F  // Keyboard [ and {
+const val KEY_RIGHTBRACE = 0x30 // Keyboard ] and }
+const val KEY_BACKSLASH = 0x31  // Keyboard \ and ｜
+const val KEY_SEMICOLON = 0x33  // Keyboard ; and :
+const val KEY_APOSTROPHE = 0x34 // Keyboard ' and "
+const val KEY_GRAVE = 0x35      // Keyboard Grave Accent and Tilde
+const val KEY_COMMA = 0x36      // Keyboard, and <
+const val KEY_DOT = 0x37        // Keyboard . and >
+const val KEY_SLASH = 0x38      // Keyboard / and
+const val KEY_CAPSLOCK = 0x39   // Keyboard Caps Lock
+const val KEY_F1 = 0x3A         // Keyboard F1
+const val KEY_F2 = 0x3B         // Keyboard F2
+const val KEY_F3 = 0x3C         // Keyboard F3
+const val KEY_F4 = 0x3D         // Keyboard F4
+const val KEY_F5 = 0x3E         // Keyboard F5
+const val KEY_F6 = 0x3F         // Keyboard F6
+const val KEY_F7 = 0x40         // Keyboard F7
+const val KEY_F8 = 0x41         // Keyboard F8
+const val KEY_F9 = 0x42         // Keyboard F9
+const val KEY_F10 = 0x43        // Keyboard F10
+const val KEY_F11 = 0x44        // Keyboard F11
+const val KEY_F12 = 0x45        // Keyboard F12
+
+fun getKeyCode(char: String): Pair<Int, Int> {
+    return when (char) {
+        "a" -> {
+            Pair(0x00, KEY_A)
+        }
+
+        "b" -> {
+            Pair(0x00, KEY_B)
+        }
+
+        "c" -> {
+            Pair(0x00, KEY_C)
+        }
+
+        "d" -> {
+            Pair(0x00, KEY_D)
+        }
+
+        "e" -> {
+            Pair(0x00, KEY_E)
+        }
+
+        "f" -> {
+            Pair(0x00, KEY_F)
+        }
+
+        "g" -> {
+            Pair(0x00, KEY_G)
+        }
+
+        "h" -> {
+            Pair(0x00, KEY_H)
+        }
+
+        "i" -> {
+            Pair(0x00, KEY_I)
+        }
+
+        "j" -> {
+            Pair(0x00, KEY_J)
+        }
+
+        "k" -> {
+            Pair(0x00, KEY_K)
+        }
+
+        "l" -> {
+            Pair(0x00, KEY_L)
+        }
+
+        "m" -> {
+            Pair(0x00, KEY_M)
+        }
+
+        "n" -> {
+            Pair(0x00, KEY_N)
+        }
+
+        "o" -> {
+            Pair(0x00, KEY_O)
+        }
+
+        "p" -> {
+            Pair(0x00, KEY_P)
+        }
+
+        "q" -> {
+            Pair(0x00, KEY_Q)
+        }
+
+        "r" -> {
+            Pair(0x00, KEY_R)
+        }
+
+        "s" -> {
+            Pair(0x00, KEY_S)
+        }
+
+        "t" -> {
+            Pair(0x00, KEY_T)
+        }
+
+        "u" -> {
+            Pair(0x00, KEY_U)
+        }
+
+        "v" -> {
+            Pair(0x00, KEY_V)
+        }
+
+        "w" -> {
+            Pair(0x00, KEY_W)
+        }
+
+        "x" -> {
+            Pair(0x00, KEY_X)
+        }
+
+        "y" -> {
+            Pair(0x00, KEY_Y)
+        }
+
+        "z" -> {
+            Pair(0x00, KEY_Z)
+        }
+
+        "A" -> {
+            Pair(0x02, KEY_A)
+        }
+
+        "B" -> {
+            Pair(0x02, KEY_B)
+        }
+
+        "C" -> {
+            Pair(0x02, KEY_C)
+        }
+
+        "D" -> {
+            Pair(0x02, KEY_D)
+        }
+
+        "E" -> {
+            Pair(0x02, KEY_E)
+        }
+
+        "F" -> {
+            Pair(0x02, KEY_F)
+        }
+
+        "G" -> {
+            Pair(0x02, KEY_G)
+        }
+
+        "H" -> {
+            Pair(0x02, KEY_H)
+        }
+
+        "I" -> {
+            Pair(0x02, KEY_I)
+        }
+
+        "J" -> {
+            Pair(0x02, KEY_J)
+        }
+
+        "K" -> {
+            Pair(0x02, KEY_K)
+        }
+
+        "L" -> {
+            Pair(0x02, KEY_L)
+        }
+
+        "M" -> {
+            Pair(0x02, KEY_M)
+        }
+
+        "N" -> {
+            Pair(0x02, KEY_N)
+        }
+
+        "O" -> {
+            Pair(0x02, KEY_O)
+        }
+
+        "P" -> {
+            Pair(0x02, KEY_P)
+        }
+
+        "Q" -> {
+            Pair(0x02, KEY_Q)
+        }
+
+        "R" -> {
+            Pair(0x02, KEY_R)
+        }
+
+        "S" -> {
+            Pair(0x02, KEY_S)
+        }
+
+        "T" -> {
+            Pair(0x02, KEY_T)
+        }
+
+        "U" -> {
+            Pair(0x02, KEY_U)
+        }
+
+        "V" -> {
+            Pair(0x02, KEY_V)
+        }
+
+        "W" -> {
+            Pair(0x02, KEY_W)
+        }
+
+        "X" -> {
+            Pair(0x02, KEY_X)
+        }
+
+        "Y" -> {
+            Pair(0x02, KEY_Y)
+        }
+
+        "Z" -> {
+            Pair(0x02, KEY_Z)
+        }
+
+        "1" -> {
+            Pair(0x00, KEY_1)
+        }
+
+        "2" -> {
+            Pair(0x00, KEY_2)
+        }
+
+        "3" -> {
+            Pair(0x00, KEY_3)
+        }
+
+        "4" -> {
+            Pair(0x00, KEY_4)
+        }
+
+        "5" -> {
+            Pair(0x00, KEY_5)
+        }
+
+        "6" -> {
+            Pair(0x00, KEY_6)
+        }
+
+        "7" -> {
+            Pair(0x00, KEY_7)
+        }
+
+        "8" -> {
+            Pair(0x00, KEY_8)
+        }
+
+        "9" -> {
+            Pair(0x00, KEY_9)
+        }
+
+        "0" -> {
+            Pair(0x00, KEY_0)
+        }
+
+        "!" -> {
+            Pair(0x02, KEY_1)
+        }
+
+        "@" -> {
+            Pair(0x02, KEY_2)
+        }
+
+        "#" -> {
+            Pair(0x02, KEY_3)
+        }
+
+        "$" -> {
+            Pair(0x02, KEY_4)
+        }
+
+        "%" -> {
+            Pair(0x02, KEY_5)
+        }
+
+        "^" -> {
+            Pair(0x02, KEY_6)
+        }
+
+        "&" -> {
+            Pair(0x02, KEY_7)
+        }
+
+        "*" -> {
+            Pair(0x02, KEY_8)
+        }
+
+        "(" -> {
+            Pair(0x02, KEY_9)
+        }
+
+        ")" -> {
+            Pair(0x02, KEY_0)
+        }
+
+        "ENTER" -> {
+            Pair(0x00, KEY_ENTER)
+        }
+
+        "ESC" -> {
+            Pair(0x00, KEY_ESC)
+        }
+
+        "BACKSPACE" -> {
+            Pair(0x00, KEY_BACKSPACE)
+        }
+
+        "TAB" -> {
+            Pair(0x00, KEY_TAB)
+        }
+
+        "SPACE" -> {
+            Pair(0x00, KEY_SPACE)
+        }
+
+        "-" -> {
+            Pair(0x00, KEY_MINUS)
+        }
+
+        "=" -> {
+            Pair(0x00, KEY_EQUAL)
+        }
+
+        "[" -> {
+            Pair(0x00, KEY_LEFTBRACE)
+        }
+
+        "]" -> {
+            Pair(0x00, KEY_RIGHTBRACE)
+        }
+
+        "\\" -> {
+            Pair(0x00, KEY_BACKSLASH)
+        }
+
+        ";" -> {
+            Pair(0x00, KEY_SEMICOLON)
+        }
+
+        "'" -> {
+            Pair(0x00, KEY_APOSTROPHE)
+        }
+
+        "`" -> {
+            Pair(0x00, KEY_GRAVE)
+        }
+
+        "," -> {
+            Pair(0x00, KEY_COMMA)
+        }
+
+        "." -> {
+            Pair(0x00, KEY_DOT)
+        }
+
+        "/" -> {
+            Pair(0x00, KEY_SLASH)
+        }
+
+        "_" -> {
+            Pair(0x02, KEY_MINUS)
+        }
+
+        "+" -> {
+            Pair(0x02, KEY_EQUAL)
+        }
+
+        "{" -> {
+            Pair(0x02, KEY_LEFTBRACE)
+        }
+
+        "}" -> {
+            Pair(0x02, KEY_RIGHTBRACE)
+        }
+
+        "|" -> {
+            Pair(0x02, KEY_BACKSLASH)
+        }
+
+        ":" -> {
+            Pair(0x02, KEY_SEMICOLON)
+        }
+
+        "\"" -> {
+            Pair(0x02, KEY_APOSTROPHE)
+        }
+
+        "~" -> {
+            Pair(0x02, KEY_GRAVE)
+        }
+
+        "<" -> {
+            Pair(0x02, KEY_COMMA)
+        }
+
+        ">" -> {
+            Pair(0x02, KEY_DOT)
+        }
+
+        "?" -> {
+            Pair(0x02, KEY_SLASH)
+        }
+
+        "CAPSLOCK" -> {
+            Pair(0x00, KEY_CAPSLOCK)
+        }
+
+        "F1" -> {
+            Pair(0x00, KEY_F1)
+        }
+
+        "F2" -> {
+            Pair(0x00, KEY_F2)
+        }
+
+        "F3" -> {
+            Pair(0x00, KEY_F3)
+        }
+
+        "F4" -> {
+            Pair(0x00, KEY_F4)
+        }
+
+        "F5" -> {
+            Pair(0x00, KEY_F5)
+        }
+
+        "F6" -> {
+            Pair(0x00, KEY_F6)
+        }
+
+        "F7" -> {
+            Pair(0x00, KEY_F7)
+        }
+
+        "F8" -> {
+            Pair(0x00, KEY_F8)
+        }
+
+        "F9" -> {
+            Pair(0x00, KEY_F9)
+        }
+
+        "F10" -> {
+            Pair(0x00, KEY_F10)
+        }
+
+        "F11" -> {
+            Pair(0x00, KEY_F11)
+        }
+
+        "F12" -> {
+            Pair(0x00, KEY_F12)
+        }
+
+        else -> {
+            Pair(0, 0)
+        }
+    }
+}
+
 class MainActivity : ComponentActivity() {
     private lateinit var manager: UsbManager
 
@@ -169,18 +691,19 @@ class MainActivity : ComponentActivity() {
         return (sum and 0xFF).toByte()
     }
 
-    private fun createPacketForKeyDown(modifiers: Byte, hidCode: Byte): ByteArray {
+    private fun createPacketForKeyDown(key: String): ByteArray {
+        val (modifiers, hidCode) = getKeyCode(key)
         val packet = byteArrayOf(
-            0x57, 0xAB.toByte(), 0x00, 0x02, 0x08, modifiers,
-            0x00, hidCode, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            0x57, 0xAB.toByte(), 0x00, 0x02, 0x08, modifiers.toByte(),
+            0x00, hidCode.toByte(), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         )
         packet[packet.size - 1] = getParity(packet)
         return packet
     }
 
-    private fun onKeyInput(char: String): String {
-        var logs: Array<String> = arrayOf("onKeyInput: $char", "")
-        Log.d("onKeyInput", char)
+    private fun onKeyInput(keyChar: String): String {
+        var logs: Array<String> = arrayOf("onKeyInput: $keyChar", "")
+        Log.d("onKeyInput", keyChar)
 
         logs += "# connected devices:"
         for (item in manager.deviceList) {
@@ -237,28 +760,8 @@ class MainActivity : ComponentActivity() {
         val dataBits = 8
         port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
 
-        when (char) {
-            "A" -> {
-                // Shift + a
-                val keyDownShift = createPacketForKeyDown(0x02, 0x00)
-                logs += sendKeyDown(port, keyDownShift)
-                val keyDownA = createPacketForKeyDown(0x02, 0x04)
-                logs += sendKeyDown(port, keyDownA)
-                logs += sendKeyUp(port)
-            }
-
-            "a" -> {
-                // a
-                val keyDownA = createPacketForKeyDown(0x00, 0x04)
-                logs += sendKey(port, keyDownA)
-            }
-
-            else -> {
-                // Backspace (0x2A)
-                val keyDownBs = createPacketForKeyDown(0x00, 0x2A)
-                logs += sendKey(port, keyDownBs)
-            }
-        }
+        val keyDownPacket: ByteArray = createPacketForKeyDown(keyChar)
+        logs += sendKey(port, keyDownPacket)
 
         port.close()
         val msg = "done"
@@ -293,10 +796,10 @@ fun Keyboard(onKeyInput: (String) -> String) {
             Button(onClick = {
                 Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
                 Log.d("Button", "onClick(BS)")
-                val log = onKeyInput("BS")
+                val log = onKeyInput("BACKSPACE")
                 setMessage(log)
             }) {
-                Text("BS")
+                Text("BACKSPACE")
             }
         }
         Text(
