@@ -135,8 +135,8 @@ class MainActivity : ComponentActivity() {
         val port = driver.ports[0] // Most devices have just one port (port 0)
         port.open(connection)
 
-        val baudRate: Int = 9600
-        val dataBits: Int = 8
+        val baudRate = 9600
+        val dataBits = 8
         port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
 
         // Shift + a
@@ -150,17 +150,17 @@ class MainActivity : ComponentActivity() {
         val buffer2 = ByteArray(size = 16)
 
         logs += "# key down"
-        port.write(keyDown, WRITE_WAIT_MILLIS);
+        port.write(keyDown, WRITE_WAIT_MILLIS)
         logs += "sent: " + getPacketInfo(keyDown)
-        val len1 = port.read(buffer1, READ_WAIT_MILLIS);
+        val len1 = port.read(buffer1, READ_WAIT_MILLIS)
         val readPacket1 = buffer1.sliceArray(0..<len1)
         logs += "read: " + getPacketInfo(readPacket1)
         logs += checkReadPacket(readPacket1) + "\n"
 
         logs += "# key up"
-        port.write(keyUp, WRITE_WAIT_MILLIS);
+        port.write(keyUp, WRITE_WAIT_MILLIS)
         logs += "sent: " + getPacketInfo(keyUp)
-        val len2 = port.read(buffer2, READ_WAIT_MILLIS);
+        val len2 = port.read(buffer2, READ_WAIT_MILLIS)
         val readPacket2 = buffer2.sliceArray(0..<len2)
         logs += "read: " + getPacketInfo(readPacket2)
         logs += checkReadPacket(readPacket2) + "\n"
