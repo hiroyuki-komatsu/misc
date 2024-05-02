@@ -99,10 +99,18 @@ const val KEY_F9 = 0x42         // Keyboard F9
 const val KEY_F10 = 0x43        // Keyboard F10
 const val KEY_F11 = 0x44        // Keyboard F11
 const val KEY_F12 = 0x45        // Keyboard F12
+const val KEY_RIGHT  = 0x4F  // Keyboard RightArrow
+const val KEY_LEFT  = 0x50  // Keyboard LeftArrow
+const val KEY_DOWN  = 0x51  // Keyboard DownArrow
+const val KEY_UP  = 0x52  // Keyboard UpArrow
 const val KEY_LEFTCTRL  = 0xE0  // Keyboard LeftControl
 const val KEY_LEFTSHIFT = 0xE1  // Keyboard LeftShift
 const val KEY_RIGHTCTRL = 0xE4  // Keyboard RightControl
 const val KEY_RIGHTSHIFT = 0xE5 // Keyboard LeftShift
+const val KEY_HANGEUL = 0x90 // Keyboard LANG1
+const val KEY_HANJA = 0x91 // Keyboard LANG2
+const val KEY_LANG1 = 0x90 // Keyboard LANG1
+const val KEY_LANG2 = 0x91 // Keyboard LANG2
 
 val KEYCODE_MAP: Map<String, Pair<Int, Int>> = mapOf(
     "a" to Pair(0x00, KEY_A),
@@ -217,10 +225,16 @@ val KEYCODE_MAP: Map<String, Pair<Int, Int>> = mapOf(
     "F10" to Pair(0x00, KEY_F10),
     "F11" to Pair(0x00, KEY_F11),
     "F12" to Pair(0x00, KEY_F12),
+    "RIGHT" to Pair(0x00, KEY_RIGHT),
+    "LEFT" to Pair(0x00, KEY_LEFT),
+    "DOWN" to Pair(0x00, KEY_DOWN),
+    "UP" to Pair(0x00, KEY_UP),
     "LEFTCTRL" to Pair(0x00, KEY_LEFTCTRL),
     "LEFTSHIFT" to Pair(0x00, KEY_LEFTSHIFT),
     "RIGHTCTRL" to Pair(0x00, KEY_RIGHTCTRL),
     "RIGHTSHIFT" to Pair(0x00, KEY_RIGHTSHIFT),
+    "LANG1" to Pair(0x00, KEY_LANG1),
+    "LANG2" to Pair(0x00, KEY_LANG2),
 )
 
 val CODEMAP: Map<Int, String> = mapOf(
@@ -496,6 +510,14 @@ val LAYOUT_MAP: LayoutMap = mapOf(
     "POS_COMMA" to listOf(",", ","),
     "POS_DOT" to listOf(".", "."),
     "POS_SLASH" to listOf("/", "/"),
+    // Others
+    "POS_UP" to listOf("↑", "UP"),
+    "POS_LEFT" to listOf("←", "LEFT"),
+    "POS_DOWN" to listOf("↓", "DOWN"),
+    "POS_RIGHT" to listOf("→", "RIGHT"),
+    "POS_SPACE" to listOf("", "SPACE"),
+    "POS_LANG1" to listOf("かな", "LANG1"),
+    "POS_LANG2" to listOf("英数", "LANG2"),
 )
 
 val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
@@ -553,9 +575,17 @@ val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
     "POS_B" to listOf("B", "B"),
     "POS_N" to listOf("N", "N"),
     "POS_M" to listOf("M", "M"),
-    "POS_COMMA" to listOf(",", ","),
-    "POS_DOT" to listOf(".", "."),
+    "POS_COMMA" to listOf("<", "<"),
+    "POS_DOT" to listOf(">", ">"),
     "POS_SLASH" to listOf("?", "?"),
+    // Others
+    "POS_UP" to listOf("↑", "UP"),
+    "POS_LEFT" to listOf("←", "LEFT"),
+    "POS_DOWN" to listOf("↓", "DOWN"),
+    "POS_RIGHT" to listOf("→", "RIGHT"),
+    "POS_SPACE" to listOf("", "SPACE"),
+    "POS_LANG1" to listOf("かな", "LANG1"),
+    "POS_LANG2" to listOf("英数", "LANG2"),
 )
 
 typealias LayoutData = List<List<Pair<String, Float>>>
@@ -618,14 +648,20 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_COMMA", 1f),
         Pair("POS_DOT", 1f),
         Pair("POS_SLASH", 1f),
+        Pair("", 1f),
+        Pair("POS_UP", 1f),
     ), listOf(
-        Pair("", 1.75f),
+        Pair("", 2.75f),
         Pair("POS_", 1f),
         Pair("POS_", 1f),
-        Pair("POS_", 1f),
+        Pair("POS_LANG2", 1f),
         Pair("POS_SPACE", 2.5f),
+        Pair("POS_LANG1", 1f),
         Pair("POS_", 1f),
-        Pair("POS_", 1f),
+        Pair("", 2f),
+        Pair("POS_LEFT", 1f),
+        Pair("POS_DOWN", 1f),
+        Pair("POS_RIGHT", 1f),
     )
 )
 
@@ -714,19 +750,18 @@ fun Keyboard(onKeyInput: (String) -> String) {
 
 @Preview(showBackground = true, device = "spec:parent=pixel_5")
 @Composable
-fun KeyboardPreview() {
-    HIDEmulatorTheme {
-        Keyboard(onKeyInput = { "" })
-    }
-}
-
-@Preview(showBackground = true, device = "spec:parent=pixel_5")
-@Composable
 fun LayersPreview() {
     HIDEmulatorTheme {
         Column {
             Layer({}, LAYOUT_DATA, LAYOUT_MAP)
             Layer({}, LAYOUT_DATA, LAYOUT_SHIFTED_MAP)
         }
+    }
+}
+@Preview(showBackground = true, device = "spec:parent=pixel_5")
+@Composable
+fun KeyboardPreview() {
+    HIDEmulatorTheme {
+        Keyboard(onKeyInput = { "" })
     }
 }
