@@ -97,460 +97,134 @@ const val KEY_F10 = 0x43        // Keyboard F10
 const val KEY_F11 = 0x44        // Keyboard F11
 const val KEY_F12 = 0x45        // Keyboard F12
 
+val KEYMAP : Map<String, Pair<Int, Int>> = mapOf(
+    "a" to Pair(0x00, KEY_A),
+    "b" to Pair(0x00, KEY_B),
+    "c" to Pair(0x00, KEY_C),
+    "d" to Pair(0x00, KEY_D),
+    "e" to Pair(0x00, KEY_E),
+    "f" to Pair(0x00, KEY_F),
+    "g" to Pair(0x00, KEY_G),
+    "h" to Pair(0x00, KEY_H),
+    "i" to Pair(0x00, KEY_I),
+    "j" to Pair(0x00, KEY_J),
+    "k" to Pair(0x00, KEY_K),
+    "l" to Pair(0x00, KEY_L),
+    "m" to Pair(0x00, KEY_M),
+    "n" to Pair(0x00, KEY_N),
+    "o" to Pair(0x00, KEY_O),
+    "p" to Pair(0x00, KEY_P),
+    "q" to Pair(0x00, KEY_Q),
+    "r" to Pair(0x00, KEY_R),
+    "s" to Pair(0x00, KEY_S),
+    "t" to Pair(0x00, KEY_T),
+    "u" to Pair(0x00, KEY_U),
+    "v" to Pair(0x00, KEY_V),
+    "w" to Pair(0x00, KEY_W),
+    "x" to Pair(0x00, KEY_X),
+    "y" to Pair(0x00, KEY_Y),
+    "z" to Pair(0x00, KEY_Z),
+    "A" to Pair(0x02, KEY_A),
+    "B" to Pair(0x02, KEY_B),
+    "C" to Pair(0x02, KEY_C),
+    "D" to Pair(0x02, KEY_D),
+    "E" to Pair(0x02, KEY_E),
+    "F" to Pair(0x02, KEY_F),
+    "G" to Pair(0x02, KEY_G),
+    "H" to Pair(0x02, KEY_H),
+    "I" to Pair(0x02, KEY_I),
+    "J" to Pair(0x02, KEY_J),
+    "K" to Pair(0x02, KEY_K),
+    "L" to Pair(0x02, KEY_L),
+    "M" to Pair(0x02, KEY_M),
+    "N" to Pair(0x02, KEY_N),
+    "O" to Pair(0x02, KEY_O),
+    "P" to Pair(0x02, KEY_P),
+    "Q" to Pair(0x02, KEY_Q),
+    "R" to Pair(0x02, KEY_R),
+    "S" to Pair(0x02, KEY_S),
+    "T" to Pair(0x02, KEY_T),
+    "U" to Pair(0x02, KEY_U),
+    "V" to Pair(0x02, KEY_V),
+    "W" to Pair(0x02, KEY_W),
+    "X" to Pair(0x02, KEY_X),
+    "Y" to Pair(0x02, KEY_Y),
+    "Z" to Pair(0x02, KEY_Z),
+    "1" to Pair(0x00, KEY_1),
+    "2" to Pair(0x00, KEY_2),
+    "3" to Pair(0x00, KEY_3),
+    "4" to Pair(0x00, KEY_4),
+    "5" to Pair(0x00, KEY_5),
+    "6" to Pair(0x00, KEY_6),
+    "7" to Pair(0x00, KEY_7),
+    "8" to Pair(0x00, KEY_8),
+    "9" to Pair(0x00, KEY_9),
+    "0" to Pair(0x00, KEY_0),
+    "!" to Pair(0x02, KEY_1),
+    "@" to Pair(0x02, KEY_2),
+    "#" to Pair(0x02, KEY_3),
+    "$" to Pair(0x02, KEY_4),
+    "%" to Pair(0x02, KEY_5),
+    "^" to Pair(0x02, KEY_6),
+    "&" to Pair(0x02, KEY_7),
+    "*" to Pair(0x02, KEY_8),
+    "(" to Pair(0x02, KEY_9),
+    ")" to Pair(0x02, KEY_0),
+    "ENTER" to Pair(0x00, KEY_ENTER),
+    "ESC" to Pair(0x00, KEY_ESC),
+    "BACKSPACE" to Pair(0x00, KEY_BACKSPACE),
+    "TAB" to Pair(0x00, KEY_TAB),
+    "SPACE" to Pair(0x00, KEY_SPACE),
+    "-" to Pair(0x00, KEY_MINUS),
+    "=" to Pair(0x00, KEY_EQUAL),
+    "[" to Pair(0x00, KEY_LEFTBRACE),
+    "]" to Pair(0x00, KEY_RIGHTBRACE),
+    "\\" to Pair(0x00, KEY_BACKSLASH),
+    ";" to Pair(0x00, KEY_SEMICOLON),
+    "'" to Pair(0x00, KEY_APOSTROPHE),
+    "`" to Pair(0x00, KEY_GRAVE),
+    "," to Pair(0x00, KEY_COMMA),
+    "." to Pair(0x00, KEY_DOT),
+    "/" to Pair(0x00, KEY_SLASH),
+    "_" to Pair(0x02, KEY_MINUS),
+    "+" to Pair(0x02, KEY_EQUAL),
+    "{" to Pair(0x02, KEY_LEFTBRACE),
+    "}" to Pair(0x02, KEY_RIGHTBRACE),
+    "|" to Pair(0x02, KEY_BACKSLASH),
+    ":" to Pair(0x02, KEY_SEMICOLON),
+    "\"" to Pair(0x02, KEY_APOSTROPHE),
+    "~" to Pair(0x02, KEY_GRAVE),
+    "<" to Pair(0x02, KEY_COMMA),
+    ">" to Pair(0x02, KEY_DOT),
+    "?" to Pair(0x02, KEY_SLASH),
+    "CAPSLOCK" to Pair(0x00, KEY_CAPSLOCK),
+    "F1" to Pair(0x00, KEY_F1),
+    "F2" to Pair(0x00, KEY_F2),
+    "F3" to Pair(0x00, KEY_F3),
+    "F4" to Pair(0x00, KEY_F4),
+    "F5" to Pair(0x00, KEY_F5),
+    "F6" to Pair(0x00, KEY_F6),
+    "F7" to Pair(0x00, KEY_F7),
+    "F8" to Pair(0x00, KEY_F8),
+    "F9" to Pair(0x00, KEY_F9),
+    "F10" to Pair(0x00, KEY_F10),
+    "F11" to Pair(0x00, KEY_F11),
+    "F12" to Pair(0x00, KEY_F12),
+)
+
+val CODEMAP : Map<Int, String> = mapOf(
+    0x00 to "success",
+    0xE1 to "timeout error",
+    0xE2 to "header bytes error",
+    0xE3 to "command code error",
+    0xE4 to "invalid parity error",
+    0xE5 to "parameter error",
+    0xE6 to "operation error",
+)
+
+
 fun getKeyCode(char: String): Pair<Int, Int> {
-    return when (char) {
-        "a" -> {
-            Pair(0x00, KEY_A)
-        }
-
-        "b" -> {
-            Pair(0x00, KEY_B)
-        }
-
-        "c" -> {
-            Pair(0x00, KEY_C)
-        }
-
-        "d" -> {
-            Pair(0x00, KEY_D)
-        }
-
-        "e" -> {
-            Pair(0x00, KEY_E)
-        }
-
-        "f" -> {
-            Pair(0x00, KEY_F)
-        }
-
-        "g" -> {
-            Pair(0x00, KEY_G)
-        }
-
-        "h" -> {
-            Pair(0x00, KEY_H)
-        }
-
-        "i" -> {
-            Pair(0x00, KEY_I)
-        }
-
-        "j" -> {
-            Pair(0x00, KEY_J)
-        }
-
-        "k" -> {
-            Pair(0x00, KEY_K)
-        }
-
-        "l" -> {
-            Pair(0x00, KEY_L)
-        }
-
-        "m" -> {
-            Pair(0x00, KEY_M)
-        }
-
-        "n" -> {
-            Pair(0x00, KEY_N)
-        }
-
-        "o" -> {
-            Pair(0x00, KEY_O)
-        }
-
-        "p" -> {
-            Pair(0x00, KEY_P)
-        }
-
-        "q" -> {
-            Pair(0x00, KEY_Q)
-        }
-
-        "r" -> {
-            Pair(0x00, KEY_R)
-        }
-
-        "s" -> {
-            Pair(0x00, KEY_S)
-        }
-
-        "t" -> {
-            Pair(0x00, KEY_T)
-        }
-
-        "u" -> {
-            Pair(0x00, KEY_U)
-        }
-
-        "v" -> {
-            Pair(0x00, KEY_V)
-        }
-
-        "w" -> {
-            Pair(0x00, KEY_W)
-        }
-
-        "x" -> {
-            Pair(0x00, KEY_X)
-        }
-
-        "y" -> {
-            Pair(0x00, KEY_Y)
-        }
-
-        "z" -> {
-            Pair(0x00, KEY_Z)
-        }
-
-        "A" -> {
-            Pair(0x02, KEY_A)
-        }
-
-        "B" -> {
-            Pair(0x02, KEY_B)
-        }
-
-        "C" -> {
-            Pair(0x02, KEY_C)
-        }
-
-        "D" -> {
-            Pair(0x02, KEY_D)
-        }
-
-        "E" -> {
-            Pair(0x02, KEY_E)
-        }
-
-        "F" -> {
-            Pair(0x02, KEY_F)
-        }
-
-        "G" -> {
-            Pair(0x02, KEY_G)
-        }
-
-        "H" -> {
-            Pair(0x02, KEY_H)
-        }
-
-        "I" -> {
-            Pair(0x02, KEY_I)
-        }
-
-        "J" -> {
-            Pair(0x02, KEY_J)
-        }
-
-        "K" -> {
-            Pair(0x02, KEY_K)
-        }
-
-        "L" -> {
-            Pair(0x02, KEY_L)
-        }
-
-        "M" -> {
-            Pair(0x02, KEY_M)
-        }
-
-        "N" -> {
-            Pair(0x02, KEY_N)
-        }
-
-        "O" -> {
-            Pair(0x02, KEY_O)
-        }
-
-        "P" -> {
-            Pair(0x02, KEY_P)
-        }
-
-        "Q" -> {
-            Pair(0x02, KEY_Q)
-        }
-
-        "R" -> {
-            Pair(0x02, KEY_R)
-        }
-
-        "S" -> {
-            Pair(0x02, KEY_S)
-        }
-
-        "T" -> {
-            Pair(0x02, KEY_T)
-        }
-
-        "U" -> {
-            Pair(0x02, KEY_U)
-        }
-
-        "V" -> {
-            Pair(0x02, KEY_V)
-        }
-
-        "W" -> {
-            Pair(0x02, KEY_W)
-        }
-
-        "X" -> {
-            Pair(0x02, KEY_X)
-        }
-
-        "Y" -> {
-            Pair(0x02, KEY_Y)
-        }
-
-        "Z" -> {
-            Pair(0x02, KEY_Z)
-        }
-
-        "1" -> {
-            Pair(0x00, KEY_1)
-        }
-
-        "2" -> {
-            Pair(0x00, KEY_2)
-        }
-
-        "3" -> {
-            Pair(0x00, KEY_3)
-        }
-
-        "4" -> {
-            Pair(0x00, KEY_4)
-        }
-
-        "5" -> {
-            Pair(0x00, KEY_5)
-        }
-
-        "6" -> {
-            Pair(0x00, KEY_6)
-        }
-
-        "7" -> {
-            Pair(0x00, KEY_7)
-        }
-
-        "8" -> {
-            Pair(0x00, KEY_8)
-        }
-
-        "9" -> {
-            Pair(0x00, KEY_9)
-        }
-
-        "0" -> {
-            Pair(0x00, KEY_0)
-        }
-
-        "!" -> {
-            Pair(0x02, KEY_1)
-        }
-
-        "@" -> {
-            Pair(0x02, KEY_2)
-        }
-
-        "#" -> {
-            Pair(0x02, KEY_3)
-        }
-
-        "$" -> {
-            Pair(0x02, KEY_4)
-        }
-
-        "%" -> {
-            Pair(0x02, KEY_5)
-        }
-
-        "^" -> {
-            Pair(0x02, KEY_6)
-        }
-
-        "&" -> {
-            Pair(0x02, KEY_7)
-        }
-
-        "*" -> {
-            Pair(0x02, KEY_8)
-        }
-
-        "(" -> {
-            Pair(0x02, KEY_9)
-        }
-
-        ")" -> {
-            Pair(0x02, KEY_0)
-        }
-
-        "ENTER" -> {
-            Pair(0x00, KEY_ENTER)
-        }
-
-        "ESC" -> {
-            Pair(0x00, KEY_ESC)
-        }
-
-        "BACKSPACE" -> {
-            Pair(0x00, KEY_BACKSPACE)
-        }
-
-        "TAB" -> {
-            Pair(0x00, KEY_TAB)
-        }
-
-        "SPACE" -> {
-            Pair(0x00, KEY_SPACE)
-        }
-
-        "-" -> {
-            Pair(0x00, KEY_MINUS)
-        }
-
-        "=" -> {
-            Pair(0x00, KEY_EQUAL)
-        }
-
-        "[" -> {
-            Pair(0x00, KEY_LEFTBRACE)
-        }
-
-        "]" -> {
-            Pair(0x00, KEY_RIGHTBRACE)
-        }
-
-        "\\" -> {
-            Pair(0x00, KEY_BACKSLASH)
-        }
-
-        ";" -> {
-            Pair(0x00, KEY_SEMICOLON)
-        }
-
-        "'" -> {
-            Pair(0x00, KEY_APOSTROPHE)
-        }
-
-        "`" -> {
-            Pair(0x00, KEY_GRAVE)
-        }
-
-        "," -> {
-            Pair(0x00, KEY_COMMA)
-        }
-
-        "." -> {
-            Pair(0x00, KEY_DOT)
-        }
-
-        "/" -> {
-            Pair(0x00, KEY_SLASH)
-        }
-
-        "_" -> {
-            Pair(0x02, KEY_MINUS)
-        }
-
-        "+" -> {
-            Pair(0x02, KEY_EQUAL)
-        }
-
-        "{" -> {
-            Pair(0x02, KEY_LEFTBRACE)
-        }
-
-        "}" -> {
-            Pair(0x02, KEY_RIGHTBRACE)
-        }
-
-        "|" -> {
-            Pair(0x02, KEY_BACKSLASH)
-        }
-
-        ":" -> {
-            Pair(0x02, KEY_SEMICOLON)
-        }
-
-        "\"" -> {
-            Pair(0x02, KEY_APOSTROPHE)
-        }
-
-        "~" -> {
-            Pair(0x02, KEY_GRAVE)
-        }
-
-        "<" -> {
-            Pair(0x02, KEY_COMMA)
-        }
-
-        ">" -> {
-            Pair(0x02, KEY_DOT)
-        }
-
-        "?" -> {
-            Pair(0x02, KEY_SLASH)
-        }
-
-        "CAPSLOCK" -> {
-            Pair(0x00, KEY_CAPSLOCK)
-        }
-
-        "F1" -> {
-            Pair(0x00, KEY_F1)
-        }
-
-        "F2" -> {
-            Pair(0x00, KEY_F2)
-        }
-
-        "F3" -> {
-            Pair(0x00, KEY_F3)
-        }
-
-        "F4" -> {
-            Pair(0x00, KEY_F4)
-        }
-
-        "F5" -> {
-            Pair(0x00, KEY_F5)
-        }
-
-        "F6" -> {
-            Pair(0x00, KEY_F6)
-        }
-
-        "F7" -> {
-            Pair(0x00, KEY_F7)
-        }
-
-        "F8" -> {
-            Pair(0x00, KEY_F8)
-        }
-
-        "F9" -> {
-            Pair(0x00, KEY_F9)
-        }
-
-        "F10" -> {
-            Pair(0x00, KEY_F10)
-        }
-
-        "F11" -> {
-            Pair(0x00, KEY_F11)
-        }
-
-        "F12" -> {
-            Pair(0x00, KEY_F12)
-        }
-
-        else -> {
-            Pair(0, 0)
-        }
-    }
+    return KEYMAP[char] ?: Pair(0x00, 0x00)
 }
 
 class MainActivity : ComponentActivity() {
@@ -589,40 +263,8 @@ class MainActivity : ComponentActivity() {
         if (packet.size != 7) {
             return "invalid size"
         }
-        val code: Byte = packet[5]
-        return when (code) {
-            0x00.toByte() -> {
-                "success"
-            }
-
-            0xE1.toByte() -> {
-                "timeout error"
-            }
-
-            0xE2.toByte() -> {
-                "header bytes error"
-            }
-
-            0xE3.toByte() -> {
-                "command code error"
-            }
-
-            0xE4.toByte() -> {
-                "invalid parity error"
-            }
-
-            0xE5.toByte() -> {
-                "parameter error"
-            }
-
-            0xE6.toByte() -> {
-                "operation error"
-            }
-
-            else -> {
-                "unknown"
-            }
-        }
+        val code: Int = packet[5].toInt()
+        return CODEMAP[code] ?: "unknown"
     }
 
     private fun sendKeyDown(port: UsbSerialPort, keyDown: ByteArray): String {
@@ -694,8 +336,20 @@ class MainActivity : ComponentActivity() {
     private fun createPacketForKeyDown(key: String): ByteArray {
         val (modifiers, hidCode) = getKeyCode(key)
         val packet = byteArrayOf(
-            0x57, 0xAB.toByte(), 0x00, 0x02, 0x08, modifiers.toByte(),
-            0x00, hidCode.toByte(), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            0x57,
+            0xAB.toByte(),
+            0x00,
+            0x02,
+            0x08,
+            modifiers.toByte(),
+            0x00,
+            hidCode.toByte(),
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00
         )
         packet[packet.size - 1] = getParity(packet)
         return packet
