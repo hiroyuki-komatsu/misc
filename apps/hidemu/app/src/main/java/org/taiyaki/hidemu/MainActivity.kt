@@ -439,6 +439,7 @@ class MainActivity : ComponentActivity() {
 typealias LayoutMap = Map<String, List<String>>
 
 val LAYOUT_MAP: LayoutMap = mapOf(
+    // Row of numbers
     "POS_ESC" to listOf("Esc", "ESC"),
     "POS_1" to listOf("1", "1"),
     "POS_2" to listOf("2", "2"),
@@ -450,6 +451,11 @@ val LAYOUT_MAP: LayoutMap = mapOf(
     "POS_8" to listOf("8", "8"),
     "POS_9" to listOf("9", "9"),
     "POS_0" to listOf("0", "0"),
+    "POS_MINUS" to listOf("-", "-"),
+    "POS_EQUAL" to listOf("=", "="),
+    "POS_GRAVE" to listOf("`", "`"),
+    "POS_BACKSPACE" to listOf("⌫", "BACKSPACE"),
+    // Row of QWER...
     "POS_TAB" to listOf("Tab", "TAB"),
     "POS_Q" to listOf("q", "q"),
     "POS_W" to listOf("w", "w"),
@@ -461,7 +467,10 @@ val LAYOUT_MAP: LayoutMap = mapOf(
     "POS_I" to listOf("i", "i"),
     "POS_O" to listOf("o", "o"),
     "POS_P" to listOf("p", "p"),
-    "POS_BACKSPACE" to listOf("⌫", "BACKSPACE"),
+    "POS_LEFTBRACE" to listOf("[", "["),
+    "POS_RIGHTBRACE" to listOf("]", "]"),
+    "POS_BACKSLASH" to listOf("\\", "\\"),
+    // Row of ASDF...
     "POS_LEFTCTRL" to listOf("Ctrl", "LEFTCTRL"),
     "POS_A" to listOf("a", "a"),
     "POS_S" to listOf("s", "s"),
@@ -472,7 +481,10 @@ val LAYOUT_MAP: LayoutMap = mapOf(
     "POS_J" to listOf("j", "j"),
     "POS_K" to listOf("k", "k"),
     "POS_L" to listOf("l", "l"),
+    "POS_SEMICOLON" to listOf(";", ";"),
+    "POS_APOSTROPHE" to listOf("'", "'"),
     "POS_ENTER" to listOf("↵", "ENTER"),
+    // Row of ZXCV...
     "POS_LEFTSHIFT" to listOf("Shift", "LEFTSHIFT"),
     "POS_Z" to listOf("z", "z"),
     "POS_X" to listOf("x", "x"),
@@ -483,9 +495,11 @@ val LAYOUT_MAP: LayoutMap = mapOf(
     "POS_M" to listOf("m", "m"),
     "POS_COMMA" to listOf(",", ","),
     "POS_DOT" to listOf(".", "."),
+    "POS_SLASH" to listOf("/", "/"),
 )
 
 val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
+    // Row of numbers
     "POS_ESC" to listOf("Esc", "ESC"),
     "POS_1" to listOf("!", "!"),
     "POS_2" to listOf("@", "@"),
@@ -497,7 +511,12 @@ val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
     "POS_8" to listOf("*", "*"),
     "POS_9" to listOf("(", "("),
     "POS_0" to listOf(")", ")"),
+    "POS_MINUS" to listOf("_", "_"),
+    "POS_EQUAL" to listOf("+", "+"),
+    "POS_GRAVE" to listOf("~", "~"),
+    "POS_BACKSPACE" to listOf("⌫", "BACKSPACE"),
     "POS_TAB" to listOf("Tab", "TAB"),
+    // Row of QWER...
     "POS_Q" to listOf("Q", "Q"),
     "POS_W" to listOf("W", "W"),
     "POS_E" to listOf("E", "E"),
@@ -508,7 +527,10 @@ val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
     "POS_I" to listOf("I", "I"),
     "POS_O" to listOf("O", "O"),
     "POS_P" to listOf("P", "P"),
-    "POS_BACKSPACE" to listOf("⌫", "BACKSPACE"),
+    "POS_LEFTBRACE" to listOf("{", "{"),
+    "POS_RIGHTBRACE" to listOf("}", "}"),
+    "POS_BACKSLASH" to listOf("|", "|"),
+    // Row of ASDF...
     "POS_LEFTCTRL" to listOf("Ctrl", "LEFTCTRL"),
     "POS_A" to listOf("A", "A"),
     "POS_S" to listOf("S", "S"),
@@ -519,7 +541,10 @@ val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
     "POS_J" to listOf("J", "J"),
     "POS_K" to listOf("K", "K"),
     "POS_L" to listOf("L", "L"),
+    "POS_SEMICOLON" to listOf(":", ":"),
+    "POS_APOSTROPHE" to listOf("\"", "\""),
     "POS_ENTER" to listOf("↵", "ENTER"),
+    // Row of ZXCV...
     "POS_LEFTSHIFT" to listOf("Shift", "LEFTSHIFT"),
     "POS_Z" to listOf("Z", "Z"),
     "POS_X" to listOf("X", "X"),
@@ -530,6 +555,7 @@ val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
     "POS_M" to listOf("M", "M"),
     "POS_COMMA" to listOf(",", ","),
     "POS_DOT" to listOf(".", "."),
+    "POS_SLASH" to listOf("?", "?"),
 )
 
 typealias LayoutData = List<List<Pair<String, Float>>>
@@ -547,6 +573,9 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_8", 1f),
         Pair("POS_9", 1f),
         Pair("POS_0", 1f),
+        Pair("POS_MINUS", 1f),
+        Pair("POS_EQUAL", 1f),
+        Pair("POS_GRAVE", 1f),
         Pair("POS_BACKSPACE", 1f),
     ), listOf(
         Pair("POS_TAB", 1.5f),
@@ -560,6 +589,9 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_I", 1f),
         Pair("POS_O", 1f),
         Pair("POS_P", 1f),
+        Pair("POS_LEFTBRACE", 1f),
+        Pair("POS_RIGHTBRACE", 1f),
+        Pair("POS_BACKSLASH", 1.5f),
     ), listOf(
         Pair("POS_LEFTCTRL", 1.75f),
         Pair("POS_A", 1f),
@@ -571,7 +603,9 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_J", 1f),
         Pair("POS_K", 1f),
         Pair("POS_L", 1f),
-        Pair("POS_ENTER", 1f),
+        Pair("POS_SEMICOLON", 1f),
+        Pair("POS_APOSTROPHE", 1f),
+        Pair("POS_ENTER", 2.25f),
     ), listOf(
         Pair("POS_LEFTSHIFT", 2.25f),
         Pair("POS_Z", 1f),
@@ -583,6 +617,7 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_M", 1f),
         Pair("POS_COMMA", 1f),
         Pair("POS_DOT", 1f),
+        Pair("POS_SLASH", 1f),
     ), listOf(
         Pair("", 1.75f),
         Pair("POS_", 1f),
@@ -682,5 +717,16 @@ fun Keyboard(onKeyInput: (String) -> String) {
 fun KeyboardPreview() {
     HIDEmulatorTheme {
         Keyboard(onKeyInput = { "" })
+    }
+}
+
+@Preview(showBackground = true, device = "spec:parent=pixel_5")
+@Composable
+fun LayersPreview() {
+    HIDEmulatorTheme {
+        Column {
+            Layer({}, LAYOUT_DATA, LAYOUT_MAP)
+            Layer({}, LAYOUT_DATA, LAYOUT_SHIFTED_MAP)
+        }
     }
 }
