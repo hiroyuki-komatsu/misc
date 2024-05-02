@@ -5,18 +5,13 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -25,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -105,7 +99,7 @@ const val KEY_F10 = 0x43        // Keyboard F10
 const val KEY_F11 = 0x44        // Keyboard F11
 const val KEY_F12 = 0x45        // Keyboard F12
 
-val KEYMAP: Map<String, Pair<Int, Int>> = mapOf(
+val KEYCODE_MAP: Map<String, Pair<Int, Int>> = mapOf(
     "a" to Pair(0x00, KEY_A),
     "b" to Pair(0x00, KEY_B),
     "c" to Pair(0x00, KEY_C),
@@ -232,7 +226,7 @@ val CODEMAP: Map<Int, String> = mapOf(
 
 
 fun getKeyCode(char: String): Pair<Int, Int> {
-    return KEYMAP[char] ?: Pair(0x00, 0x00)
+    return KEYCODE_MAP[char] ?: Pair(0x00, 0x00)
 }
 
 class MainActivity : ComponentActivity() {
@@ -433,8 +427,42 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+val LAYOUT_MAP = mapOf(
+    "POS_Q" to listOf("q", "q"),
+    "POS_W" to listOf("w", "w"),
+    "POS_E" to listOf("e", "e"),
+    "POS_R" to listOf("r", "r"),
+    "POS_T" to listOf("t", "t"),
+    "POS_Y" to listOf("y", "y"),
+    "POS_U" to listOf("u", "u"),
+    "POS_I" to listOf("i", "i"),
+    "POS_O" to listOf("o", "o"),
+    "POS_P" to listOf("p", "p"),
+    "POS_BACKSPACE" to listOf("⌫", "BACKSPACE"),
+    "POS_A" to listOf("a", "a"),
+    "POS_S" to listOf("s", "s"),
+    "POS_D" to listOf("d", "d"),
+    "POS_F" to listOf("f", "f"),
+    "POS_G" to listOf("g", "g"),
+    "POS_H" to listOf("h", "h"),
+    "POS_J" to listOf("j", "j"),
+    "POS_K" to listOf("k", "k"),
+    "POS_L" to listOf("l", "l"),
+    "POS_ENTER" to listOf("↵", "ENTER"),
+    "POS_Z" to listOf("z", "z"),
+    "POS_X" to listOf("x", "x"),
+    "POS_C" to listOf("c", "c"),
+    "POS_V" to listOf("v", "v"),
+    "POS_B" to listOf("b", "b"),
+    "POS_N" to listOf("n", "n"),
+    "POS_M" to listOf("m", "m"),
+    "POS_COMMA" to listOf(",", ","),
+    "POS_DOT" to listOf(".", "."),
+)
+
 @Composable
-fun Key(label: String, value: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
+fun Key(pos: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
+    val (label, value) = LAYOUT_MAP[pos] ?: listOf("", "")
     OutlinedButton(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
@@ -449,46 +477,49 @@ fun Key(label: String, value: String, onClick: (String) -> Unit, modifier: Modif
     }
 }
 
+
 @Composable
 fun Layer(onClick: (String) -> Unit) {
     Column {
         Row {
-            Key("q", "q", onClick, Modifier.weight(1f))
-            Key("w", "w", onClick, Modifier.weight(1f))
-            Key("e", "e", onClick, Modifier.weight(1f))
-            Key("r", "r", onClick, Modifier.weight(1f))
-            Key("t", "t", onClick, Modifier.weight(1f))
-            Key("y", "y", onClick, Modifier.weight(1f))
-            Key("u", "u", onClick, Modifier.weight(1f))
-            Key("i", "i", onClick, Modifier.weight(1f))
-            Key("o", "o", onClick, Modifier.weight(1f))
-            Key("p", "p", onClick, Modifier.weight(1f))
-            Key("⌫", "BACKSPACE", onClick, Modifier.weight(1f))
+            Key("POS_Q", onClick, Modifier.weight(1f))
+            Key("POS_W", onClick, Modifier.weight(1f))
+            Key("POS_E", onClick, Modifier.weight(1f))
+            Key("POS_R", onClick, Modifier.weight(1f))
+            Key("POS_T", onClick, Modifier.weight(1f))
+            Key("POS_Y", onClick, Modifier.weight(1f))
+            Key("POS_U", onClick, Modifier.weight(1f))
+            Key("POS_I", onClick, Modifier.weight(1f))
+            Key("POS_O", onClick, Modifier.weight(1f))
+            Key("POS_P", onClick, Modifier.weight(1f))
+            Key("POS_BACKSPACE", onClick, Modifier.weight(1f))
         }
         Row {
             Spacer(modifier = Modifier.weight(0.5f))
-            Key("a", "a", onClick, Modifier.weight(1f))
-            Key("s", "s", onClick, Modifier.weight(1f))
-            Key("d", "d", onClick, Modifier.weight(1f))
-            Key("f", "f", onClick, Modifier.weight(1f))
-            Key("g", "g", onClick, Modifier.weight(1f))
-            Key("h", "h", onClick, Modifier.weight(1f))
-            Key("j", "j", onClick, Modifier.weight(1f))
-            Key("k", "k", onClick, Modifier.weight(1f))
-            Key("l", "l", onClick, Modifier.weight(1f))
-            Key("↵", "ENTER", onClick, Modifier.weight(1f))
+            Key("POS_A", onClick, Modifier.weight(1f))
+            Key("POS_S", onClick, Modifier.weight(1f))
+            Key("POS_D", onClick, Modifier.weight(1f))
+            Key("POS_F", onClick, Modifier.weight(1f))
+            Key("POS_G", onClick, Modifier.weight(1f))
+            Key("POS_H", onClick, Modifier.weight(1f))
+            Key("POS_J", onClick, Modifier.weight(1f))
+            Key("POS_K", onClick, Modifier.weight(1f))
+            Key("POS_L", onClick, Modifier.weight(1f))
+            Key("POS_ENTER", onClick, Modifier.weight(1f))
             Spacer(modifier = Modifier.weight(0.5f))
         }
         Row {
             Spacer(modifier = Modifier.weight(1f))
-            Key("z", "z", onClick, Modifier.weight(1f))
-            Key("x", "x", onClick, Modifier.weight(1f))
-            Key("c", "c", onClick, Modifier.weight(1f))
-            Key("v", "v", onClick, Modifier.weight(1f))
-            Key("b", "b", onClick, Modifier.weight(1f))
-            Key("n", "n", onClick, Modifier.weight(1f))
-            Key("m", "m", onClick, Modifier.weight(1f))
-            Spacer(modifier = Modifier.weight(3f))
+            Key("POS_Z", onClick, Modifier.weight(1f))
+            Key("POS_X", onClick, Modifier.weight(1f))
+            Key("POS_C", onClick, Modifier.weight(1f))
+            Key("POS_V", onClick, Modifier.weight(1f))
+            Key("POS_B", onClick, Modifier.weight(1f))
+            Key("POS_N", onClick, Modifier.weight(1f))
+            Key("POS_M", onClick, Modifier.weight(1f))
+            Key("POS_COMMA", onClick, Modifier.weight(1f))
+            Key("POS_DOT", onClick, Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
