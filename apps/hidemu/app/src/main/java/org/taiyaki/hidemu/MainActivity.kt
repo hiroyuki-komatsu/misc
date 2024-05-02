@@ -426,35 +426,28 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun Key(label: String, value: String, onClick: (String) -> Unit) {
+    return Button(onClick = {
+        Log.d("Key", "onClick($label)")
+        onClick(value)
+    }) {
+        Text(label)
+    }
+}
+
+@Composable
 fun Keyboard(onKeyInput: (String) -> String) {
     val context = LocalContext.current
     val (message, setMessage) = remember { mutableStateOf("") }
+    val onClick: (String) -> Unit = { value: String ->
+        val log = onKeyInput(value)
+        setMessage(log)
+    }
     Column {
         Row {
-            Button(onClick = {
-                Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
-                Log.d("Button", "onClick(a)")
-                val log = onKeyInput("a")
-                setMessage(log)
-            }) {
-                Text("a")
-            }
-            Button(onClick = {
-                Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
-                Log.d("Button", "onClick(A)")
-                val log = onKeyInput("A")
-                setMessage(log)
-            }) {
-                Text("A")
-            }
-            Button(onClick = {
-                Toast.makeText(context, "clicked", Toast.LENGTH_SHORT).show()
-                Log.d("Button", "onClick(BS)")
-                val log = onKeyInput("BACKSPACE")
-                setMessage(log)
-            }) {
-                Text("BACKSPACE")
-            }
+            Key("a", "a", onClick)
+            Key("A", "A", onClick)
+            Key("⌫", "BACKSPACE", onClick)
         }
         Text(
             text = message
