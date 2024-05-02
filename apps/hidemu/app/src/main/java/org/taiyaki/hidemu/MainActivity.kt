@@ -99,6 +99,10 @@ const val KEY_F9 = 0x42         // Keyboard F9
 const val KEY_F10 = 0x43        // Keyboard F10
 const val KEY_F11 = 0x44        // Keyboard F11
 const val KEY_F12 = 0x45        // Keyboard F12
+const val KEY_LEFTCTRL  = 0xE0  // Keyboard LeftControl
+const val KEY_LEFTSHIFT = 0xE1  // Keyboard LeftShift
+const val KEY_RIGHTCTRL = 0xE4  // Keyboard RightControl
+const val KEY_RIGHTSHIFT = 0xE5 // Keyboard LeftShift
 
 val KEYCODE_MAP: Map<String, Pair<Int, Int>> = mapOf(
     "a" to Pair(0x00, KEY_A),
@@ -213,6 +217,10 @@ val KEYCODE_MAP: Map<String, Pair<Int, Int>> = mapOf(
     "F10" to Pair(0x00, KEY_F10),
     "F11" to Pair(0x00, KEY_F11),
     "F12" to Pair(0x00, KEY_F12),
+    "LEFTCTRL" to Pair(0x00, KEY_LEFTCTRL),
+    "LEFTSHIFT" to Pair(0x00, KEY_LEFTSHIFT),
+    "RIGHTCTRL" to Pair(0x00, KEY_RIGHTCTRL),
+    "RIGHTSHIFT" to Pair(0x00, KEY_RIGHTSHIFT),
 )
 
 val CODEMAP: Map<Int, String> = mapOf(
@@ -428,7 +436,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-val LAYOUT_MAP = mapOf(
+typealias LayoutMap = Map<String, List<String>>
+
+val LAYOUT_MAP: LayoutMap = mapOf(
+    "POS_TAB" to listOf("Tab", "TAB"),
     "POS_Q" to listOf("q", "q"),
     "POS_W" to listOf("w", "w"),
     "POS_E" to listOf("e", "e"),
@@ -440,6 +451,7 @@ val LAYOUT_MAP = mapOf(
     "POS_O" to listOf("o", "o"),
     "POS_P" to listOf("p", "p"),
     "POS_BACKSPACE" to listOf("⌫", "BACKSPACE"),
+    "POS_LEFTCTRL" to listOf("Ctrl", "LEFTCTRL"),
     "POS_A" to listOf("a", "a"),
     "POS_S" to listOf("s", "s"),
     "POS_D" to listOf("d", "d"),
@@ -450,6 +462,7 @@ val LAYOUT_MAP = mapOf(
     "POS_K" to listOf("k", "k"),
     "POS_L" to listOf("l", "l"),
     "POS_ENTER" to listOf("↵", "ENTER"),
+    "POS_LEFTSHIFT" to listOf("Shift", "LEFTSHIFT"),
     "POS_Z" to listOf("z", "z"),
     "POS_X" to listOf("x", "x"),
     "POS_C" to listOf("c", "c"),
@@ -461,9 +474,47 @@ val LAYOUT_MAP = mapOf(
     "POS_DOT" to listOf(".", "."),
 )
 
+val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
+    "POS_TAB" to listOf("Tab", "TAB"),
+    "POS_Q" to listOf("Q", "Q"),
+    "POS_W" to listOf("W", "W"),
+    "POS_E" to listOf("E", "E"),
+    "POS_R" to listOf("R", "R"),
+    "POS_T" to listOf("T", "T"),
+    "POS_Y" to listOf("Y", "Y"),
+    "POS_U" to listOf("U", "U"),
+    "POS_I" to listOf("I", "I"),
+    "POS_O" to listOf("O", "O"),
+    "POS_P" to listOf("P", "P"),
+    "POS_BACKSPACE" to listOf("⌫", "BACKSPACE"),
+    "POS_LEFTCTRL" to listOf("Ctrl", "LEFTCTRL"),
+    "POS_A" to listOf("A", "A"),
+    "POS_S" to listOf("S", "S"),
+    "POS_D" to listOf("D", "D"),
+    "POS_F" to listOf("F", "F"),
+    "POS_G" to listOf("G", "G"),
+    "POS_H" to listOf("H", "H"),
+    "POS_J" to listOf("J", "J"),
+    "POS_K" to listOf("K", "K"),
+    "POS_L" to listOf("L", "L"),
+    "POS_ENTER" to listOf("↵", "ENTER"),
+    "POS_LEFTSHIFT" to listOf("Shift", "LEFTSHIFT"),
+    "POS_Z" to listOf("Z", "Z"),
+    "POS_X" to listOf("X", "X"),
+    "POS_C" to listOf("C", "C"),
+    "POS_V" to listOf("V", "V"),
+    "POS_B" to listOf("B", "B"),
+    "POS_N" to listOf("N", "N"),
+    "POS_M" to listOf("M", "M"),
+    "POS_COMMA" to listOf(",", ","),
+    "POS_DOT" to listOf(".", "."),
+)
+
 typealias LayoutData = List<List<Pair<String, Float>>>
+
 val LAYOUT_DATA: LayoutData = listOf(
     listOf(
+        Pair("POS_TAB", 1f),
         Pair("POS_Q", 1f),
         Pair("POS_W", 1f),
         Pair("POS_E", 1f),
@@ -475,9 +526,8 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_O", 1f),
         Pair("POS_P", 1f),
         Pair("POS_BACKSPACE", 1f),
-    ),
-    listOf(
-        Pair("", 0.25f),
+    ), listOf(
+        Pair("POS_LEFTCTRL", 1.25f),
         Pair("POS_A", 1f),
         Pair("POS_S", 1f),
         Pair("POS_D", 1f),
@@ -488,9 +538,8 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_K", 1f),
         Pair("POS_L", 1f),
         Pair("POS_ENTER", 1f),
-    ),
-    listOf(
-        Pair("", 0.5f),
+    ), listOf(
+        Pair("POS_LEFTSHIFT", 1.5f),
         Pair("POS_Z", 1f),
         Pair("POS_X", 1f),
         Pair("POS_C", 1f),
@@ -500,9 +549,8 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_M", 1f),
         Pair("POS_COMMA", 1f),
         Pair("POS_DOT", 1f),
-    ),
-    listOf(
-        Pair("", 0.75f),
+    ), listOf(
+        Pair("", 1.75f),
         Pair("POS_", 1f),
         Pair("POS_", 1f),
         Pair("POS_", 1f),
@@ -513,10 +561,8 @@ val LAYOUT_DATA: LayoutData = listOf(
 )
 
 @Composable
-fun Key(pos: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
-    val (label, value) = LAYOUT_MAP[pos] ?: listOf("", "")
-    OutlinedButton(
-        modifier = modifier,
+fun Key(onClick: (String) -> Unit, label: String, value: String, modifier: Modifier = Modifier) {
+    OutlinedButton(modifier = modifier,
         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
         shape = MaterialTheme.shapes.small,
         onClick = {
@@ -524,8 +570,7 @@ fun Key(pos: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
             onClick(value)
         }) {
         Text(
-            label,
-            overflow = TextOverflow.Ellipsis
+            label, overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -544,7 +589,7 @@ fun getMaxWidth(layoutData: LayoutData): Float {
 }
 
 @Composable
-fun Layer(onClick: (String) -> Unit, layoutData: LayoutData) {
+fun Layer(onClick: (String) -> Unit, layoutData: LayoutData, layoutMap: LayoutMap) {
     val maxWidth: Float = getMaxWidth(layoutData)
     Column {
         for (row in layoutData) {
@@ -555,9 +600,15 @@ fun Layer(onClick: (String) -> Unit, layoutData: LayoutData) {
                     width += weight
                     if (pos == "") {
                         Spacer(modifier = Modifier.weight(weight))
-                    } else {
-                        Key(pos, onClick, Modifier.weight(weight))
+                        continue
                     }
+                    val (label, value) = layoutMap[pos] ?: listOf("", "")
+                    Key(
+                        onClick = onClick,
+                        label = label,
+                        value = value,
+                        modifier = Modifier.weight(weight)
+                    )
                 }
                 if (width < maxWidth) {
                     Spacer(modifier = Modifier.weight(maxWidth - width))
@@ -569,13 +620,23 @@ fun Layer(onClick: (String) -> Unit, layoutData: LayoutData) {
 
 @Composable
 fun Keyboard(onKeyInput: (String) -> String) {
+    val (layout, setLayout) = remember { mutableStateOf("default") }
     val (message, setMessage) = remember { mutableStateOf("") }
     val onClick: (String) -> Unit = { value: String ->
-        val log = onKeyInput(value)
+        var log = ""
+        if (value == "LEFTSHIFT" || value == "RIGHTSHIFT") {
+            log = "Shifted"
+            setLayout("shifted")
+        } else {
+            log = onKeyInput(value)
+            setLayout("default")
+        }
         setMessage(log)
     }
     Column {
-        Layer(onClick, LAYOUT_DATA)
+        val layoutMap: LayoutMap = if (layout == "shifted") LAYOUT_SHIFTED_MAP else LAYOUT_MAP
+        Layer(onClick, LAYOUT_DATA, layoutMap)
+        // Layer(onClick, LAYOUT_DATA, LAYOUT2_MAP)
         Text(
             text = message
         )
