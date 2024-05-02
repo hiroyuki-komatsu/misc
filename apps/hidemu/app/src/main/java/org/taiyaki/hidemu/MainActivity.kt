@@ -439,6 +439,17 @@ class MainActivity : ComponentActivity() {
 typealias LayoutMap = Map<String, List<String>>
 
 val LAYOUT_MAP: LayoutMap = mapOf(
+    "POS_ESC" to listOf("Esc", "ESC"),
+    "POS_1" to listOf("1", "1"),
+    "POS_2" to listOf("2", "2"),
+    "POS_3" to listOf("3", "3"),
+    "POS_4" to listOf("4", "4"),
+    "POS_5" to listOf("5", "5"),
+    "POS_6" to listOf("6", "6"),
+    "POS_7" to listOf("7", "7"),
+    "POS_8" to listOf("8", "8"),
+    "POS_9" to listOf("9", "9"),
+    "POS_0" to listOf("0", "0"),
     "POS_TAB" to listOf("Tab", "TAB"),
     "POS_Q" to listOf("q", "q"),
     "POS_W" to listOf("w", "w"),
@@ -475,6 +486,17 @@ val LAYOUT_MAP: LayoutMap = mapOf(
 )
 
 val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
+    "POS_ESC" to listOf("Esc", "ESC"),
+    "POS_1" to listOf("!", "!"),
+    "POS_2" to listOf("@", "@"),
+    "POS_3" to listOf("#", "#"),
+    "POS_4" to listOf("$", "$"),
+    "POS_5" to listOf("%", "%"),
+    "POS_6" to listOf("^", "^"),
+    "POS_7" to listOf("&", "&"),
+    "POS_8" to listOf("*", "*"),
+    "POS_9" to listOf("(", "("),
+    "POS_0" to listOf(")", ")"),
     "POS_TAB" to listOf("Tab", "TAB"),
     "POS_Q" to listOf("Q", "Q"),
     "POS_W" to listOf("W", "W"),
@@ -514,7 +536,20 @@ typealias LayoutData = List<List<Pair<String, Float>>>
 
 val LAYOUT_DATA: LayoutData = listOf(
     listOf(
-        Pair("POS_TAB", 1f),
+        Pair("POS_ESC", 1f),
+        Pair("POS_1", 1f),
+        Pair("POS_2", 1f),
+        Pair("POS_3", 1f),
+        Pair("POS_4", 1f),
+        Pair("POS_5", 1f),
+        Pair("POS_6", 1f),
+        Pair("POS_7", 1f),
+        Pair("POS_8", 1f),
+        Pair("POS_9", 1f),
+        Pair("POS_0", 1f),
+        Pair("POS_BACKSPACE", 1f),
+    ), listOf(
+        Pair("POS_TAB", 1.5f),
         Pair("POS_Q", 1f),
         Pair("POS_W", 1f),
         Pair("POS_E", 1f),
@@ -525,9 +560,8 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_I", 1f),
         Pair("POS_O", 1f),
         Pair("POS_P", 1f),
-        Pair("POS_BACKSPACE", 1f),
     ), listOf(
-        Pair("POS_LEFTCTRL", 1.25f),
+        Pair("POS_LEFTCTRL", 1.75f),
         Pair("POS_A", 1f),
         Pair("POS_S", 1f),
         Pair("POS_D", 1f),
@@ -539,7 +573,7 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_L", 1f),
         Pair("POS_ENTER", 1f),
     ), listOf(
-        Pair("POS_LEFTSHIFT", 1.5f),
+        Pair("POS_LEFTSHIFT", 2.25f),
         Pair("POS_Z", 1f),
         Pair("POS_X", 1f),
         Pair("POS_C", 1f),
