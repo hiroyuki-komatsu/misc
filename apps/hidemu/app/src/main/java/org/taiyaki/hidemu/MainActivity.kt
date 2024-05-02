@@ -460,6 +460,49 @@ val LAYOUT_MAP = mapOf(
     "POS_DOT" to listOf(".", "."),
 )
 
+typealias LayoutData = List<List<Pair<String, Float>>>
+val LAYOUT_DATA: LayoutData = listOf(
+    listOf(
+        Pair("POS_Q", 1f),
+        Pair("POS_W", 1f),
+        Pair("POS_E", 1f),
+        Pair("POS_R", 1f),
+        Pair("POS_T", 1f),
+        Pair("POS_Y", 1f),
+        Pair("POS_U", 1f),
+        Pair("POS_I", 1f),
+        Pair("POS_O", 1f),
+        Pair("POS_P", 1f),
+        Pair("POS_BACKSPACE", 1f),
+    ),
+    listOf(
+        Pair("", 0.5f),
+        Pair("POS_A", 1f),
+        Pair("POS_S", 1f),
+        Pair("POS_D", 1f),
+        Pair("POS_F", 1f),
+        Pair("POS_G", 1f),
+        Pair("POS_H", 1f),
+        Pair("POS_J", 1f),
+        Pair("POS_K", 1f),
+        Pair("POS_L", 1f),
+        Pair("POS_ENTER", 1f),
+        Pair("", 0.5f),
+    ), listOf(
+        Pair("", 1f),
+        Pair("POS_Z", 1f),
+        Pair("POS_X", 1f),
+        Pair("POS_C", 1f),
+        Pair("POS_V", 1f),
+        Pair("POS_B", 1f),
+        Pair("POS_N", 1f),
+        Pair("POS_M", 1f),
+        Pair("POS_COMMA", 1f),
+        Pair("POS_DOT", 1f),
+        Pair("", 1f),
+    )
+)
+
 @Composable
 fun Key(pos: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
     val (label, value) = LAYOUT_MAP[pos] ?: listOf("", "")
@@ -471,7 +514,8 @@ fun Key(pos: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
             Log.d("Key", "onClick($label)")
             onClick(value)
         }) {
-        Text(label,
+        Text(
+            label,
             overflow = TextOverflow.Ellipsis
         )
     }
@@ -479,47 +523,19 @@ fun Key(pos: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
 
 
 @Composable
-fun Layer(onClick: (String) -> Unit) {
+fun Layer(onClick: (String) -> Unit, layoutData: LayoutData) {
     Column {
-        Row {
-            Key("POS_Q", onClick, Modifier.weight(1f))
-            Key("POS_W", onClick, Modifier.weight(1f))
-            Key("POS_E", onClick, Modifier.weight(1f))
-            Key("POS_R", onClick, Modifier.weight(1f))
-            Key("POS_T", onClick, Modifier.weight(1f))
-            Key("POS_Y", onClick, Modifier.weight(1f))
-            Key("POS_U", onClick, Modifier.weight(1f))
-            Key("POS_I", onClick, Modifier.weight(1f))
-            Key("POS_O", onClick, Modifier.weight(1f))
-            Key("POS_P", onClick, Modifier.weight(1f))
-            Key("POS_BACKSPACE", onClick, Modifier.weight(1f))
-        }
-        Row {
-            Spacer(modifier = Modifier.weight(0.5f))
-            Key("POS_A", onClick, Modifier.weight(1f))
-            Key("POS_S", onClick, Modifier.weight(1f))
-            Key("POS_D", onClick, Modifier.weight(1f))
-            Key("POS_F", onClick, Modifier.weight(1f))
-            Key("POS_G", onClick, Modifier.weight(1f))
-            Key("POS_H", onClick, Modifier.weight(1f))
-            Key("POS_J", onClick, Modifier.weight(1f))
-            Key("POS_K", onClick, Modifier.weight(1f))
-            Key("POS_L", onClick, Modifier.weight(1f))
-            Key("POS_ENTER", onClick, Modifier.weight(1f))
-            Spacer(modifier = Modifier.weight(0.5f))
-        }
-        Row {
-            Spacer(modifier = Modifier.weight(1f))
-            Key("POS_Z", onClick, Modifier.weight(1f))
-            Key("POS_X", onClick, Modifier.weight(1f))
-            Key("POS_C", onClick, Modifier.weight(1f))
-            Key("POS_V", onClick, Modifier.weight(1f))
-            Key("POS_B", onClick, Modifier.weight(1f))
-            Key("POS_N", onClick, Modifier.weight(1f))
-            Key("POS_M", onClick, Modifier.weight(1f))
-            Key("POS_COMMA", onClick, Modifier.weight(1f))
-            Key("POS_DOT", onClick, Modifier.weight(1f))
-            Spacer(modifier = Modifier.weight(1f))
+        for (row in layoutData) {
+            Row {
+                for (items in row) {
+                    val (pos: String, weight: Float) = items
+                    if (pos == "") {
+                        Spacer(modifier = Modifier.weight(weight))
+                    } else {
+                        Key(pos, onClick, Modifier.weight(weight))
+                    }
+                }
+            }
         }
     }
 }
@@ -532,7 +548,7 @@ fun Keyboard(onKeyInput: (String) -> String) {
         setMessage(log)
     }
     Column {
-        Layer(onClick)
+        Layer(onClick, LAYOUT_DATA)
         Text(
             text = message
         )
