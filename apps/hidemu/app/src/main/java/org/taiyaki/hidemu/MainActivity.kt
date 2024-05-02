@@ -351,6 +351,17 @@ class MainActivity : ComponentActivity() {
         logs += checkReadPacket(readPacket2) + "\n"
     }
 
+    private fun moveMouse(port: UsbSerialPort, packet: ByteArray) {
+        val buffer = ByteArray(size = 16)
+
+        logs += "# move mouse"
+        port.write(packet, WRITE_WAIT_MILLIS)
+        logs += "sent: " + getPacketInfo(packet)
+        val len = port.read(buffer, READ_WAIT_MILLIS)
+        val readPacket = buffer.sliceArray(0..<len)
+        logs += "read: " + getPacketInfo(readPacket)
+        logs += checkReadPacket(readPacket) + "\n"
+    }
     private fun getParity(packet: ByteArray): Byte {
         var sum = 0
         for (byte in packet) {
@@ -365,26 +376,41 @@ class MainActivity : ComponentActivity() {
             0x57,
             0xAB.toByte(),
             0x00,
-            0x02,
-            0x08,
-            modifiers.toByte(),
-            0x00,
-            hidCode.toByte(),
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00
+            0x02,  // CMD_SEND_KB_GENERAL_DATA
+            0x08,  // Length of data
+            modifiers.toByte(),  // [RWin, RAlt, RShift, RCtrl, LWin, LAlt, LShift, LCtrl]
+            0x00,  // Always 0x00
+            hidCode.toByte(),  // USB HID Keycode1
+            0x00,  // USB HID Keycode2
+            0x00,  // USB HID Keycode3
+            0x00,  // USB HID Keycode4
+            0x00,  // USB HID Keycode5
+            0x00,  // USB HID Keycode6
+            0x00,  // Parity: Sum of bytes (mod 0xFF)
         )
         packet[packet.size - 1] = getParity(packet)
         return packet
     }
 
-    private fun onKeyInput(keyChar: String): String {
-        logs += "onKeyInput: $keyChar"
-        Log.d("onKeyInput", keyChar)
+    private fun createPacketForMouseMove(x: Int, y: Int): ByteArray {
+        val packet = byteArrayOf(
+            0x57,
+            0xAB.toByte(),
+            0x00,
+            0x05,  // CMD_SEND_MS_REL_DATA
+            0x05,  // Length of data
+            0x01,  // Always 0x01
+            0x00,  // [0..0, mid_btn, r_btn, l_btn]
+            x.toByte(),  // Delta of x
+            y.toByte(),  // Delta of y
+            0x00,  // Delta of wheel
+            0x00,  // Parity: Sum of bytes (mod 0xFF)
+        )
+        packet[packet.size - 1] = getParity(packet)
+        return packet
+    }
 
+    private fun openPort(): UsbSerialPort? {
         logs += "# connected devices:"
         for (item in manager.deviceList) {
             logs += getDeviceInfo(item.value)
@@ -396,7 +422,7 @@ class MainActivity : ComponentActivity() {
             val msg = "no available default drivers"
             Log.d("onKeyInput", msg)
             logs += msg
-            return logs.joinToString(separator = "\n")
+            return null
         }
 
         var driver: UsbSerialDriver? = null
@@ -415,14 +441,14 @@ class MainActivity : ComponentActivity() {
             val msg = "no target drivers"
             Log.d("onKeyInput", msg)
             logs += msg
-            return consumeLog()
+            return null
         }
 
         if (!manager.hasPermission(driver.device)) {
             val msg = "no permission"
             Log.d("onKeyInput", msg)
             logs += msg
-            return consumeLog()
+            return null
         }
 
         val connection = manager.openDevice(driver.device)
@@ -430,11 +456,26 @@ class MainActivity : ComponentActivity() {
             val msg = "no connection"
             Log.d("onKeyInput", msg)
             logs += msg
-            return consumeLog()
+            return null
         }
 
         val port = driver.ports[0]
         port.open(connection)
+        return port
+    }
+
+    private fun onKeyInput(keyChar: String): String {
+        logs += "onKeyInput: $keyChar"
+        Log.d("onKeyInput", keyChar)
+
+        if (keyChar == "LEFT") {
+            return onMouseMove(100, -50)
+        }
+
+        val port = openPort()
+        if (port == null) {
+            return consumeLog()
+        }
 
         val baudRate = 9600
         val dataBits = 8
@@ -447,6 +488,28 @@ class MainActivity : ComponentActivity() {
         val msg = "done"
         Log.d("onKeyInput", msg)
         logs += msg
+        return consumeLog()
+    }
+
+    private fun onMouseMove(x: Int, y: Int): String {
+        logs += "onMouseMove: ($x, $y)"
+        Log.d("onMouseMove", logs.last())
+
+        val port = openPort()
+        if (port == null) {
+            return consumeLog()
+        }
+
+        val baudRate = 9600
+        val dataBits = 8
+        port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+
+        val packet: ByteArray = createPacketForMouseMove(x, y)
+        moveMouse(port, packet)
+
+        port.close()
+        logs += "done"
+        Log.d("onMouseMove", logs.last())
         return consumeLog()
     }
 }
