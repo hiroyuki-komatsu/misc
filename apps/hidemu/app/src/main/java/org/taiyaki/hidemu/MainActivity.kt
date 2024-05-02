@@ -8,11 +8,16 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +25,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
@@ -97,7 +104,7 @@ const val KEY_F10 = 0x43        // Keyboard F10
 const val KEY_F11 = 0x44        // Keyboard F11
 const val KEY_F12 = 0x45        // Keyboard F12
 
-val KEYMAP : Map<String, Pair<Int, Int>> = mapOf(
+val KEYMAP: Map<String, Pair<Int, Int>> = mapOf(
     "a" to Pair(0x00, KEY_A),
     "b" to Pair(0x00, KEY_B),
     "c" to Pair(0x00, KEY_C),
@@ -212,7 +219,7 @@ val KEYMAP : Map<String, Pair<Int, Int>> = mapOf(
     "F12" to Pair(0x00, KEY_F12),
 )
 
-val CODEMAP : Map<Int, String> = mapOf(
+val CODEMAP: Map<Int, String> = mapOf(
     0x00 to "success",
     0xE1 to "timeout error",
     0xE2 to "header bytes error",
@@ -426,12 +433,18 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Key(label: String, value: String, onClick: (String) -> Unit) {
-    return Button(onClick = {
-        Log.d("Key", "onClick($label)")
-        onClick(value)
-    }) {
-        Text(label)
+fun Key(label: String, value: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
+    return OutlinedButton(
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+        shape = MaterialTheme.shapes.small,
+        onClick = {
+            Log.d("Key", "onClick($label)")
+            onClick(value)
+        }) {
+        Text(label,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -444,10 +457,42 @@ fun Keyboard(onKeyInput: (String) -> String) {
         setMessage(log)
     }
     Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            // Button(modifier = Modifier.weight(1f), onClick = {}) { Text("a") }
+            Key("q", "q", onClick, Modifier.weight(1f))
+            Key("w", "w", onClick, Modifier.weight(1f))
+            Key("e", "e", onClick, Modifier.weight(1f))
+            Key("r", "r", onClick, Modifier.weight(1f))
+            Key("t", "t", onClick, Modifier.weight(1f))
+            Key("y", "y", onClick, Modifier.weight(1f))
+            Key("u", "u", onClick, Modifier.weight(1f))
+            Key("i", "i", onClick, Modifier.weight(1f))
+            Key("o", "o", onClick, Modifier.weight(1f))
+            Key("p", "p", onClick, Modifier.weight(1f))
+            Key("⌫", "BACKSPACE", onClick, Modifier.weight(1f))
+        }
         Row {
-            Key("a", "a", onClick)
-            Key("A", "A", onClick)
-            Key("⌫", "BACKSPACE", onClick)
+            Key("a", "a", onClick, Modifier.weight(1f))
+            Key("s", "s", onClick, Modifier.weight(1f))
+            Key("d", "d", onClick, Modifier.weight(1f))
+            Key("f", "f", onClick, Modifier.weight(1f))
+            Key("g", "g", onClick, Modifier.weight(1f))
+            Key("h", "h", onClick, Modifier.weight(1f))
+            Key("j", "j", onClick, Modifier.weight(1f))
+            Key("k", "k", onClick, Modifier.weight(1f))
+            Key("l", "l", onClick, Modifier.weight(1f))
+            Key("↵", "ENTER", onClick, Modifier.weight(1f))
+        }
+        Row {
+            Key("z", "z", onClick, Modifier.weight(1f))
+            Key("x", "x", onClick, Modifier.weight(1f))
+            Key("c", "c", onClick, Modifier.weight(1f))
+            Key("v", "v", onClick, Modifier.weight(1f))
+            Key("b", "b", onClick, Modifier.weight(1f))
+            Key("n", "n", onClick, Modifier.weight(1f))
+            Key("m", "m", onClick, Modifier.weight(1f))
         }
         Text(
             text = message
@@ -455,7 +500,7 @@ fun Keyboard(onKeyInput: (String) -> String) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, device = "spec:parent=pixel_5")
 @Composable
 fun KeyboardPreview() {
     HIDEmulatorTheme {
