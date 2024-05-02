@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -434,7 +435,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Key(label: String, value: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
-    return OutlinedButton(
+    OutlinedButton(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
         shape = MaterialTheme.shapes.small,
@@ -449,18 +450,9 @@ fun Key(label: String, value: String, onClick: (String) -> Unit, modifier: Modif
 }
 
 @Composable
-fun Keyboard(onKeyInput: (String) -> String) {
-    val context = LocalContext.current
-    val (message, setMessage) = remember { mutableStateOf("") }
-    val onClick: (String) -> Unit = { value: String ->
-        val log = onKeyInput(value)
-        setMessage(log)
-    }
+fun Layer(onClick: (String) -> Unit) {
     Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            // Button(modifier = Modifier.weight(1f), onClick = {}) { Text("a") }
+        Row {
             Key("q", "q", onClick, Modifier.weight(1f))
             Key("w", "w", onClick, Modifier.weight(1f))
             Key("e", "e", onClick, Modifier.weight(1f))
@@ -474,6 +466,7 @@ fun Keyboard(onKeyInput: (String) -> String) {
             Key("⌫", "BACKSPACE", onClick, Modifier.weight(1f))
         }
         Row {
+            Spacer(modifier = Modifier.weight(0.5f))
             Key("a", "a", onClick, Modifier.weight(1f))
             Key("s", "s", onClick, Modifier.weight(1f))
             Key("d", "d", onClick, Modifier.weight(1f))
@@ -484,8 +477,10 @@ fun Keyboard(onKeyInput: (String) -> String) {
             Key("k", "k", onClick, Modifier.weight(1f))
             Key("l", "l", onClick, Modifier.weight(1f))
             Key("↵", "ENTER", onClick, Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(0.5f))
         }
         Row {
+            Spacer(modifier = Modifier.weight(1f))
             Key("z", "z", onClick, Modifier.weight(1f))
             Key("x", "x", onClick, Modifier.weight(1f))
             Key("c", "c", onClick, Modifier.weight(1f))
@@ -493,7 +488,20 @@ fun Keyboard(onKeyInput: (String) -> String) {
             Key("b", "b", onClick, Modifier.weight(1f))
             Key("n", "n", onClick, Modifier.weight(1f))
             Key("m", "m", onClick, Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(3f))
         }
+    }
+}
+
+@Composable
+fun Keyboard(onKeyInput: (String) -> String) {
+    val (message, setMessage) = remember { mutableStateOf("") }
+    val onClick: (String) -> Unit = { value: String ->
+        val log = onKeyInput(value)
+        setMessage(log)
+    }
+    Column {
+        Layer(onClick)
         Text(
             text = message
         )
