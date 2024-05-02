@@ -27,6 +27,7 @@ import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import org.taiyaki.hidemu.ui.theme.HIDEmulatorTheme
+import kotlin.math.max
 
 const val VENDOR_ID: Int = 0x1A86
 const val PRODUCT_ID: Int = 0x7523
@@ -476,7 +477,7 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_BACKSPACE", 1f),
     ),
     listOf(
-        Pair("", 0.5f),
+        Pair("", 0.25f),
         Pair("POS_A", 1f),
         Pair("POS_S", 1f),
         Pair("POS_D", 1f),
@@ -487,9 +488,9 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_K", 1f),
         Pair("POS_L", 1f),
         Pair("POS_ENTER", 1f),
+    ),
+    listOf(
         Pair("", 0.5f),
-    ), listOf(
-        Pair("", 1f),
         Pair("POS_Z", 1f),
         Pair("POS_X", 1f),
         Pair("POS_C", 1f),
@@ -499,7 +500,15 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_M", 1f),
         Pair("POS_COMMA", 1f),
         Pair("POS_DOT", 1f),
-        Pair("", 1f),
+    ),
+    listOf(
+        Pair("", 0.75f),
+        Pair("POS_", 1f),
+        Pair("POS_", 1f),
+        Pair("POS_", 1f),
+        Pair("POS_SPACE", 2.5f),
+        Pair("POS_", 1f),
+        Pair("POS_", 1f),
     )
 )
 
@@ -521,19 +530,37 @@ fun Key(pos: String, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
+fun getMaxWidth(layoutData: LayoutData): Float {
+    var maxWidth = 0f
+    for (row in layoutData) {
+        var width = 0f
+        for (items in row) {
+            val (_: String, weight: Float) = items
+            width += weight
+        }
+        maxWidth = max(width, maxWidth)
+    }
+    return maxWidth
+}
 
 @Composable
 fun Layer(onClick: (String) -> Unit, layoutData: LayoutData) {
+    val maxWidth: Float = getMaxWidth(layoutData)
     Column {
         for (row in layoutData) {
+            var width = 0f
             Row {
                 for (items in row) {
                     val (pos: String, weight: Float) = items
+                    width += weight
                     if (pos == "") {
                         Spacer(modifier = Modifier.weight(weight))
                     } else {
                         Key(pos, onClick, Modifier.weight(weight))
                     }
+                }
+                if (width < maxWidth) {
+                    Spacer(modifier = Modifier.weight(maxWidth - width))
                 }
             }
         }
