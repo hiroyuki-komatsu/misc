@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -675,7 +676,9 @@ fun Key(onClick: (String) -> Unit, label: String, value: String, modifier: Modif
             onClick(value)
         }) {
         Text(
-            label, overflow = TextOverflow.Ellipsis
+            text = label,
+            overflow = TextOverflow.Clip,
+            maxLines = 1,
         )
     }
 }
