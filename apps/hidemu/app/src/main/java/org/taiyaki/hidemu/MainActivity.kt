@@ -734,7 +734,7 @@ fun Keyboard(onKeyInput: (String) -> String) {
         var log = ""
         if (value == "LEFTSHIFT" || value == "RIGHTSHIFT") {
             log = "Shifted"
-            setLayout("shifted")
+            setLayout(if (layout == "default") "shifted" else "default")
         } else {
             log = onKeyInput(value)
             setLayout("default")
