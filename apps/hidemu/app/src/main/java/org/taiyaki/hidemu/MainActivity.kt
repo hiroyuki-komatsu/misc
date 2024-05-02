@@ -255,6 +255,7 @@ fun getKeyCode(char: String): Pair<Int, Int> {
 
 class MainActivity : ComponentActivity() {
     private lateinit var manager: UsbManager
+    private var logs: MutableList<String> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -269,6 +270,12 @@ class MainActivity : ComponentActivity() {
             }
         }
         manager = getSystemService(Context.USB_SERVICE) as UsbManager
+    }
+
+    private fun consumeLog(): String {
+        val log = logs.joinToString(separator = "\n")
+        logs.clear()
+        return log
     }
 
     private fun getDeviceInfo(device: UsbDevice): String {
@@ -293,8 +300,7 @@ class MainActivity : ComponentActivity() {
         return CODEMAP[code] ?: "unknown"
     }
 
-    private fun sendKeyDown(port: UsbSerialPort, keyDown: ByteArray): String {
-        var logs: Array<String> = arrayOf("")
+    private fun sendKeyDown(port: UsbSerialPort, keyDown: ByteArray) {
         val buffer1 = ByteArray(size = 16)
 
         logs += "# key down"
@@ -304,12 +310,9 @@ class MainActivity : ComponentActivity() {
         val readPacket1 = buffer1.sliceArray(0..<len1)
         logs += "read: " + getPacketInfo(readPacket1)
         logs += checkReadPacket(readPacket1) + "\n"
-
-        return logs.joinToString(separator = "\n")
     }
 
-    private fun sendKeyUp(port: UsbSerialPort): String {
-        var logs: Array<String> = arrayOf("")
+    private fun sendKeyUp(port: UsbSerialPort) {
         val keyUp = byteArrayOf(
             0x57, 0xAB.toByte(), 0, 0x02, 0x08, 0x00, 0, 0x00, 0, 0, 0, 0, 0, 0x0C
         )
@@ -322,11 +325,9 @@ class MainActivity : ComponentActivity() {
         val readPacket2 = buffer2.sliceArray(0..<len2)
         logs += "read: " + getPacketInfo(readPacket2)
         logs += checkReadPacket(readPacket2) + "\n"
-        return logs.joinToString(separator = "\n")
     }
 
-    private fun sendKey(port: UsbSerialPort, keyDown: ByteArray): String {
-        var logs: Array<String> = arrayOf("")
+    private fun sendKey(port: UsbSerialPort, keyDown: ByteArray) {
         val keyUp = byteArrayOf(
             0x57, 0xAB.toByte(), 0, 0x02, 0x08, 0x00, 0, 0x00, 0, 0, 0, 0, 0, 0x0C
         )
@@ -348,7 +349,6 @@ class MainActivity : ComponentActivity() {
         val readPacket2 = buffer2.sliceArray(0..<len2)
         logs += "read: " + getPacketInfo(readPacket2)
         logs += checkReadPacket(readPacket2) + "\n"
-        return logs.joinToString(separator = "\n")
     }
 
     private fun getParity(packet: ByteArray): Byte {
@@ -382,7 +382,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun onKeyInput(keyChar: String): String {
-        var logs: Array<String> = arrayOf("onKeyInput: $keyChar", "")
+        logs += "onKeyInput: $keyChar"
         Log.d("onKeyInput", keyChar)
 
         logs += "# connected devices:"
@@ -415,14 +415,14 @@ class MainActivity : ComponentActivity() {
             val msg = "no target drivers"
             Log.d("onKeyInput", msg)
             logs += msg
-            return logs.joinToString(separator = "\n")
+            return consumeLog()
         }
 
         if (!manager.hasPermission(driver.device)) {
             val msg = "no permission"
             Log.d("onKeyInput", msg)
             logs += msg
-            return logs.joinToString(separator = "\n")
+            return consumeLog()
         }
 
         val connection = manager.openDevice(driver.device)
@@ -430,7 +430,7 @@ class MainActivity : ComponentActivity() {
             val msg = "no connection"
             Log.d("onKeyInput", msg)
             logs += msg
-            return logs.joinToString(separator = "\n")
+            return consumeLog()
         }
 
         val port = driver.ports[0]
@@ -441,13 +441,13 @@ class MainActivity : ComponentActivity() {
         port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
 
         val keyDownPacket: ByteArray = createPacketForKeyDown(keyChar)
-        logs += sendKey(port, keyDownPacket)
+        sendKey(port, keyDownPacket)
 
         port.close()
         val msg = "done"
         Log.d("onKeyInput", msg)
         logs += msg
-        return logs.joinToString(separator = "\n")
+        return consumeLog()
     }
 }
 
