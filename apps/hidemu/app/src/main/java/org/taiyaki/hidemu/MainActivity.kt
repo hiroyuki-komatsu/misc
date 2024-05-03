@@ -7,20 +7,28 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -100,11 +108,11 @@ const val KEY_F9 = 0x42         // Keyboard F9
 const val KEY_F10 = 0x43        // Keyboard F10
 const val KEY_F11 = 0x44        // Keyboard F11
 const val KEY_F12 = 0x45        // Keyboard F12
-const val KEY_RIGHT  = 0x4F  // Keyboard RightArrow
-const val KEY_LEFT  = 0x50  // Keyboard LeftArrow
-const val KEY_DOWN  = 0x51  // Keyboard DownArrow
-const val KEY_UP  = 0x52  // Keyboard UpArrow
-const val KEY_LEFTCTRL  = 0xE0  // Keyboard LeftControl
+const val KEY_RIGHT = 0x4F  // Keyboard RightArrow
+const val KEY_LEFT = 0x50  // Keyboard LeftArrow
+const val KEY_DOWN = 0x51  // Keyboard DownArrow
+const val KEY_UP = 0x52  // Keyboard UpArrow
+const val KEY_LEFTCTRL = 0xE0  // Keyboard LeftControl
 const val KEY_LEFTSHIFT = 0xE1  // Keyboard LeftShift
 const val KEY_RIGHTCTRL = 0xE4  // Keyboard RightControl
 const val KEY_RIGHTSHIFT = 0xE5 // Keyboard LeftShift
@@ -253,6 +261,25 @@ fun getKeyCode(char: String): Pair<Int, Int> {
     return KEYCODE_MAP[char] ?: Pair(0x00, 0x00)
 }
 
+private class Event {
+    var type: String = ""
+    var key: String = ""
+    var dX: Int = 0
+    var dY: Int = 0
+    fun setKeyEvent(key: String): Event {
+        type = "key"
+        this.key = key
+        return this
+    }
+
+    fun setMouseEvent(x: Int, y: Int): Event {
+        type = "mouse"
+        this.dX = x
+        this.dY = y
+        return this
+    }
+}
+
 class MainActivity : ComponentActivity() {
     private lateinit var manager: UsbManager
     private var logs: MutableList<String> = mutableListOf()
@@ -265,7 +292,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
-                    Keyboard(onKeyInput = ::onKeyInput)
+                    MainView(onEvent = ::onEvent)
                 }
             }
         }
@@ -362,6 +389,7 @@ class MainActivity : ComponentActivity() {
         logs += "read: " + getPacketInfo(readPacket)
         logs += checkReadPacket(readPacket) + "\n"
     }
+
     private fun getParity(packet: ByteArray): Byte {
         var sum = 0
         for (byte in packet) {
@@ -464,13 +492,28 @@ class MainActivity : ComponentActivity() {
         return port
     }
 
+    private fun onEvent(event: Event): String {
+        logs += "onEvent: ${event.type}"
+        return when (event.type) {
+            "key" -> {
+                onKeyInput(event.key)
+            }
+
+            "mouse" -> {
+                onMouseMove(event.dX, event.dY)
+            }
+
+            else -> {
+                logs += "unknown event"
+                Log.d("onEvent", logs.last())
+                consumeLog()
+            }
+        }
+    }
+
     private fun onKeyInput(keyChar: String): String {
         logs += "onKeyInput: $keyChar"
         Log.d("onKeyInput", keyChar)
-
-        if (keyChar == "LEFT") {
-            return onMouseMove(100, -50)
-        }
 
         val port = openPort()
         if (port == null) {
@@ -790,28 +833,58 @@ fun Layer(onClick: (String) -> Unit, layoutData: LayoutData, layoutMap: LayoutMa
 }
 
 @Composable
-fun Keyboard(onKeyInput: (String) -> String) {
-    val (layout, setLayout) = remember { mutableStateOf("default") }
+private fun MainView(onEvent: (Event) -> String) {
     val (message, setMessage) = remember { mutableStateOf("") }
+    val onType: (Event) -> Unit = { event: Event ->
+        val log = onEvent(event)
+        setMessage(log)
+    }
+    val onMove: (Event) -> Unit = { event: Event ->
+        val log = onEvent(event)
+        setMessage(log)
+    }
+    Column {
+        TrackPad(onEvent = onMove)
+        Keyboard(onEvent = onType)
+        Text(text = message)
+    }
+}
+
+@Composable
+private fun Keyboard(onEvent: (Event) -> Unit) {
+    val (layout, setLayout) = remember { mutableStateOf("default") }
     val onClick: (String) -> Unit = { value: String ->
         var log = ""
         if (value == "LEFTSHIFT" || value == "RIGHTSHIFT") {
             log = "Shifted"
             setLayout(if (layout == "default") "shifted" else "default")
         } else {
-            log = onKeyInput(value)
+            val event = Event().setKeyEvent(value)
+            onEvent(event)
             setLayout("default")
         }
-        setMessage(log)
     }
     Column {
         val layoutMap: LayoutMap = if (layout == "shifted") LAYOUT_SHIFTED_MAP else LAYOUT_MAP
         Layer(onClick, LAYOUT_DATA, layoutMap)
-        // Layer(onClick, LAYOUT_DATA, LAYOUT2_MAP)
-        Text(
-            text = message
-        )
     }
+}
+
+@Composable
+private fun TrackPad(onEvent: (Event) -> Unit) {
+    Box(
+        modifier = Modifier
+            .background(color = MaterialTheme.colorScheme.primaryContainer)
+            .fillMaxWidth(0.5f)
+            .fillMaxHeight(0.3f)
+            .pointerInput(Unit) {
+                detectDragGestures { change, offset ->
+                    change.consume()
+                    val event = Event().setMouseEvent(offset.x.toInt(), offset.y.toInt())
+                    onEvent(event)
+                }
+            }
+    )
 }
 
 @Preview(showBackground = true, device = "spec:parent=pixel_5")
@@ -821,13 +894,15 @@ fun LayersPreview() {
         Column {
             Layer({}, LAYOUT_DATA, LAYOUT_MAP)
             Layer({}, LAYOUT_DATA, LAYOUT_SHIFTED_MAP)
+            TrackPad({ "" })
         }
     }
 }
+
 @Preview(showBackground = true, device = "spec:parent=pixel_5")
 @Composable
 fun KeyboardPreview() {
     HIDEmulatorTheme {
-        Keyboard(onKeyInput = { "" })
+        Keyboard(onEvent = { "" })
     }
 }
