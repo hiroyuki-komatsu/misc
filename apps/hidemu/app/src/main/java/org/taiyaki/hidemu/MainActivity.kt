@@ -2,7 +2,6 @@ package org.taiyaki.hidemu
 
 import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Bundle
@@ -21,10 +20,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +61,7 @@ import kotlin.math.max
 const val VENDOR_ID: Int = 0x1A86
 const val PRODUCT_ID: Int = 0x7523
 const val WRITE_WAIT_MILLIS: Int = 20
-const val READ_WAIT_MILLIS: Int = 20
+const val READ_WAIT_MILLIS: Int = 30
 
 const val KEY_A = 0x04 // Keyboard a and A
 const val KEY_B = 0x05 // Keyboard b and B
@@ -288,18 +286,29 @@ private class Event {
     var key: String = ""
     var dX: Int = 0
     var dY: Int = 0
-    var left: Boolean = false
+    var button1: Boolean = false
+    var button2: Boolean = false
+    var button3: Boolean = false
+
     fun setKeyEvent(key: String): Event {
         type = "key"
         this.key = key
         return this
     }
 
-    fun setMouseEvent(dX: Int = 0, dY: Int = 0, left: Boolean = false): Event {
+    fun setMouseEvent(
+        dX: Int = 0,
+        dY: Int = 0,
+        button1: Boolean = false,
+        button2: Boolean = false,
+        button3: Boolean = false
+    ): Event {
         type = "mouse"
         this.dX = dX
         this.dY = dY
-        this.left = left
+        this.button1 = button1
+        this.button2 = button2
+        this.button3 = button3
         return this
     }
 }
@@ -460,7 +469,15 @@ class MainActivity : ComponentActivity() {
         return packet
     }
 
-    private fun createPacketForMouseMove(x: Int, y: Int, left: Boolean): ByteArray {
+    private fun createPacketForMouseMove(
+        x: Int,
+        y: Int,
+        button1: Boolean,
+        button2: Boolean,
+        button3: Boolean
+    ): ByteArray {
+        val clickMap: Int =
+            (if (button1) 0x01 else 0x00) + (if (button2) 0x02 else 0x00) + (if (button3) 0x03 else 0x00)
         val packet = byteArrayOf(
             0x57,
             0xAB.toByte(),
@@ -468,7 +485,7 @@ class MainActivity : ComponentActivity() {
             0x05,  // CMD_SEND_MS_REL_DATA
             0x05,  // Length of data
             0x01,  // Always 0x01
-            (if (left) 0x01 else 0x00),  // [0..0, mid_btn, r_btn, l_btn]
+            clickMap.toByte(),  // [0..0, mid_btn, r_btn, l_btn]
             x.toByte(),  // Delta of x
             y.toByte(),  // Delta of y
             0x00,  // Delta of wheel
@@ -581,8 +598,10 @@ class MainActivity : ComponentActivity() {
     private fun onMouseEvent(event: Event) {
         val x: Int = event.dX
         val y: Int = event.dY
-        val left: Boolean = event.left
-        logs += "onMouseEvent: ($x, $y)"
+        val button1: Boolean = event.button1
+        val button2: Boolean = event.button2
+        val button3: Boolean = event.button3
+        logs += "onMouseEvent: ($x, $y) [$button1, $button2, $button3]"
         Log.d("onMouseEvent", logs.last())
 
         val port = openPort()
@@ -591,12 +610,12 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        val packet: ByteArray = createPacketForMouseMove(x, y, left)
+        val packet: ByteArray = createPacketForMouseMove(x, y, button1, button2, button3)
         moveMouse(port, packet)
 
-        if (left) {
+        if (button1 || button2 || button3) {
             // Reset click state
-            val resetPacket: ByteArray = createPacketForMouseMove(0, 0, false)
+            val resetPacket: ByteArray = createPacketForMouseMove(0, 0, false, false, false)
             moveMouse(port, resetPacket)
         }
 
@@ -804,7 +823,7 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_COMMA", 1f),
         Pair("POS_DOT", 1f),
         Pair("POS_SLASH", 1f),
-        Pair("", 1f),
+        Pair("", 0.75f),
         Pair("POS_UP", 1f),
     ), listOf(
         Pair("", 2.75f),
@@ -814,7 +833,7 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("POS_SPACE", 2.5f),
         Pair("POS_LANG1", 1f),
         Pair("POS_", 1f),
-        Pair("", 2f),
+        Pair("", 1.75f),
         Pair("POS_LEFT", 1f),
         Pair("POS_DOWN", 1f),
         Pair("POS_RIGHT", 1f),
@@ -832,6 +851,7 @@ fun Key(onClick: (String) -> Unit, label: String, value: String, modifier: Modif
         }) {
         Text(
             text = label,
+            fontSize = 30.sp,
             overflow = TextOverflow.Clip,
             maxLines = 1,
         )
@@ -853,6 +873,12 @@ fun getMaxWidth(layoutData: LayoutData): Float {
 
 @Composable
 fun Layer(onClick: (String) -> Unit, layoutData: LayoutData, layoutMap: LayoutMap) {
+    // Density
+    val context = LocalContext.current
+    val displayMetrics = context.resources.displayMetrics
+    val density = displayMetrics.density
+    val keySize = (160.0 / density) * (24.0f / 25.4f)
+
     val maxWidth: Float = getMaxWidth(layoutData)
     Column {
         for (row in layoutData) {
@@ -872,7 +898,7 @@ fun Layer(onClick: (String) -> Unit, layoutData: LayoutData, layoutMap: LayoutMa
                         value = value,
                         modifier = Modifier
                             .weight(weight)
-                            .height(80.dp)
+                            .height(keySize.dp)
                     )
                 }
                 if (width < maxWidth) {
@@ -905,38 +931,61 @@ private fun Keyboard(onEvent: (Event) -> Unit) {
 }
 
 @Composable
-private fun TrackPad(onEvent: (Event) -> Unit) {
+private fun TrackPad(onEvent: (Event) -> Unit, modifier: Modifier = Modifier) {
     val onDrag: (PointerInputChange, Offset) -> Unit = { change, offset ->
         change.consume()
         val event = Event().setMouseEvent(dX = offset.x.toInt(), dY = offset.y.toInt())
         onEvent(event)
     }
-    Row {
+    Column(
+        modifier = modifier
+    ) {
         Box(
             modifier = Modifier
+                .weight(4f)
                 .background(color = MaterialTheme.colorScheme.primaryContainer)
-                .fillMaxWidth(0.5f)
-                .fillMaxHeight(0.3f)
+                .fillMaxWidth(1f)
+                .fillMaxHeight(1f)
                 .pointerInput(Unit) {
                     detectDragGestures(onDrag = onDrag)
-                }
+                },
         )
-        Button(
-            onClick = {
-                val event = Event().setMouseEvent(left=true)
-                onEvent(event)
-            }
+        Row(
+            modifier = Modifier.weight(1f)
         ) {
-           Text("left")
+            OutlinedButton(
+                onClick = {
+                    val event = Event().setMouseEvent(button1 = true)
+                    onEvent(event)
+                },
+                modifier = Modifier.weight(1.75f).fillMaxHeight(),
+                shape = MaterialTheme.shapes.extraSmall,
+            ) {}
+            OutlinedButton(
+                onClick = {
+                    val event = Event().setMouseEvent(button3 = true)
+                    onEvent(event)
+                },
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                shape = MaterialTheme.shapes.extraSmall,
+            ) {}
+            OutlinedButton(
+                onClick = {
+                    val event = Event().setMouseEvent(button2 = true)
+                    onEvent(event)
+                },
+                modifier = Modifier.weight(1.75f).fillMaxHeight(),
+                shape = MaterialTheme.shapes.extraSmall,
+            ) {}
         }
     }
 }
 
 @Composable
-private fun DevLog(text: String) {
-    LazyColumn (
-        modifier = Modifier.height(100.dp)
-    ){
+private fun DevLog(text: String, modifier: Modifier = Modifier) {
+    LazyColumn(
+        modifier = modifier
+    ) {
         item {
             Text(text = text)
         }
@@ -994,20 +1043,25 @@ private fun MainView(onEvent: (Event) -> Unit) {
                         scope.launch { drawerState.close() }
                     }
                 )
-                // ...other drawer items
             }
         }
     ) {
-        Column (
+        Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Bottom,
-        ){
-            DevLog(text = message)
-            if (selectedItem == "all" || selectedItem == "trackpad") {
-                TrackPad(onEvent = onEventWithLogging)
+        ) {
+            if (selectedItem == "keyboard") {
+                DevLog(text = message, modifier = Modifier.height(100.dp))
             }
             if (selectedItem == "all" || selectedItem == "keyboard") {
                 Keyboard(onEvent = onEventWithLogging)
+            }
+            if (selectedItem == "all" || selectedItem == "trackpad") {
+                Row(modifier = Modifier.requiredHeight(300.dp)) {
+                    Spacer(Modifier.weight(4.5f))
+                    TrackPad(onEvent = onEventWithLogging, modifier = Modifier.weight(5f))
+                    DevLog(text = message, modifier = Modifier.weight(5.5f))
+                }
             }
         }
     }
