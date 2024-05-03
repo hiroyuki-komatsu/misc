@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -510,6 +511,15 @@ class MainActivity : ComponentActivity() {
 
         val port = driver.ports[0]
         port.open(connection)
+
+        if (port == null) {
+            logs += "port is null"
+            return null
+        }
+
+        val baudRate = 9600
+        val dataBits = 8
+        port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
         return port
     }
 
@@ -517,11 +527,11 @@ class MainActivity : ComponentActivity() {
         logs += "onEvent: ${event.type}"
         when (event.type) {
             "key" -> {
-                onKeyInput(event.key)
+                onKeyEvent(event)
             }
 
             "mouse" -> {
-                onMouseMove(event.dX, event.dY, event.left)
+                onMouseEvent(event)
             }
 
             else -> {
@@ -531,41 +541,37 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun onKeyInput(keyChar: String) {
-        logs += "onKeyInput: $keyChar"
-        Log.d("onKeyInput", keyChar)
+    private fun onKeyEvent(event: Event) {
+        val keyChar: String = event.key
+        logs += "onKeyEvent: $keyChar"
+        Log.d("onKeyEvent", keyChar)
 
         val port = openPort()
         if (port == null) {
             logs += "port is null"
             return
         }
-
-        val baudRate = 9600
-        val dataBits = 8
-        port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
 
         val keyDownPacket: ByteArray = createPacketForKeyDown(keyChar)
         sendKey(port, keyDownPacket)
 
         port.close()
         logs += "done"
-        Log.d("onKeyInput", logs.last())
+        Log.d("onKeyEvent", logs.last())
     }
 
-    private fun onMouseMove(x: Int, y: Int, left: Boolean = false) {
-        logs += "onMouseMove: ($x, $y)"
-        Log.d("onMouseMove", logs.last())
+    private fun onMouseEvent(event: Event) {
+        val x: Int = event.dX
+        val y: Int = event.dY
+        val left: Boolean = event.left
+        logs += "onMouseEvent: ($x, $y)"
+        Log.d("onMouseEvent", logs.last())
 
         val port = openPort()
         if (port == null) {
             logs += "port is null"
             return
         }
-
-        val baudRate = 9600
-        val dataBits = 8
-        port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
 
         val packet: ByteArray = createPacketForMouseMove(x, y, left)
         moveMouse(port, packet)
@@ -578,7 +584,7 @@ class MainActivity : ComponentActivity() {
 
         port.close()
         logs += "done"
-        Log.d("onMouseMove", logs.last())
+        Log.d("onMouseEvent", logs.last())
     }
 }
 
@@ -867,7 +873,7 @@ private fun MainView(onEvent: (Event) -> Unit) {
     Column {
         TrackPad(onEvent = onEventWithLogging)
         Keyboard(onEvent = onEventWithLogging)
-        Text(text = message)
+        DevLog(text = message)
     }
 }
 
@@ -915,6 +921,15 @@ private fun TrackPad(onEvent: (Event) -> Unit) {
             }
         ) {
            Text("left")
+        }
+    }
+}
+
+@Composable
+private fun DevLog(text: String) {
+    LazyColumn {
+        item {
+            Text(text = text)
         }
     }
 }
