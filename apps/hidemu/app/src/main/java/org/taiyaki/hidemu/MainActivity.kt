@@ -1,6 +1,8 @@
 package org.taiyaki.hidemu
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Bundle
@@ -9,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,6 +49,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
@@ -646,7 +653,7 @@ val LAYOUT_MAP: LayoutMap = mapOf(
     "POS_L" to listOf("l", "l"),
     "POS_SEMICOLON" to listOf(";", ";"),
     "POS_APOSTROPHE" to listOf("'", "'"),
-    "POS_ENTER" to listOf("↵", "ENTER"),
+    "POS_ENTER" to listOf("Enter", "ENTER"),
     // Row of ZXCV...
     "POS_LEFTSHIFT" to listOf("Shift", "LEFTSHIFT"),
     "POS_Z" to listOf("z", "z"),
@@ -876,61 +883,6 @@ fun Layer(onClick: (String) -> Unit, layoutData: LayoutData, layoutMap: LayoutMa
     }
 }
 
-@Composable
-private fun MainView(onEvent: (Event) -> Unit) {
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-    var selectedItem by remember { mutableStateOf("all") }
-    val (message, setMessage) = remember { mutableStateOf("") }
-    val onEventWithLogging: (Event) -> Unit = { event: Event ->
-        onEvent(event)
-        setMessage(logs.consume())
-    }
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                Text("HID Emulator", modifier = Modifier.padding(16.dp))
-                Divider()
-                NavigationDrawerItem(
-                    label = { Text(text = "Keyboard") },
-                    selected = (selectedItem == "keyboard"),
-                    onClick = {
-                        selectedItem = "keyboard"
-                        scope.launch { drawerState.close() }
-                    }
-                )
-                NavigationDrawerItem(
-                    label = { Text(text = "Track Pad") },
-                    selected = (selectedItem == "trackpad"),
-                    onClick = {
-                        selectedItem = "trackpad"
-                        scope.launch { drawerState.close() }
-                    }
-                )
-                NavigationDrawerItem(
-                    label = { Text(text = "All") },
-                    selected = (selectedItem == "all"),
-                    onClick = {
-                        selectedItem = "all"
-                        scope.launch { drawerState.close() }
-                    }
-                )
-                // ...other drawer items
-            }
-        }
-    ) {
-        Column {
-            if (selectedItem == "all" || selectedItem == "trackpad") {
-                TrackPad(onEvent = onEventWithLogging)
-            }
-            if (selectedItem == "all" || selectedItem == "keyboard") {
-                Keyboard(onEvent = onEventWithLogging)
-            }
-            DevLog(text = message)
-        }
-    }
-}
 
 @Composable
 private fun Keyboard(onEvent: (Event) -> Unit) {
@@ -982,9 +934,81 @@ private fun TrackPad(onEvent: (Event) -> Unit) {
 
 @Composable
 private fun DevLog(text: String) {
-    LazyColumn {
+    LazyColumn (
+        modifier = Modifier.height(100.dp)
+    ){
         item {
             Text(text = text)
+        }
+    }
+}
+
+@Composable
+private fun MainView(onEvent: (Event) -> Unit) {
+    val context = LocalContext.current
+    val window = (context as? Activity)?.window
+
+    if (window != null) {
+        // Hide the control bar
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
+
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    var selectedItem by remember { mutableStateOf("all") }
+    val (message, setMessage) = remember { mutableStateOf("") }
+    val onEventWithLogging: (Event) -> Unit = { event: Event ->
+        onEvent(event)
+        setMessage(logs.consume())
+    }
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Text("HID Emulator", modifier = Modifier.padding(16.dp))
+                Divider()
+                NavigationDrawerItem(
+                    label = { Text(text = "Keyboard") },
+                    selected = (selectedItem == "keyboard"),
+                    onClick = {
+                        selectedItem = "keyboard"
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Track Pad") },
+                    selected = (selectedItem == "trackpad"),
+                    onClick = {
+                        selectedItem = "trackpad"
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "All") },
+                    selected = (selectedItem == "all"),
+                    onClick = {
+                        selectedItem = "all"
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                // ...other drawer items
+            }
+        }
+    ) {
+        Column (
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom,
+        ){
+            DevLog(text = message)
+            if (selectedItem == "all" || selectedItem == "trackpad") {
+                TrackPad(onEvent = onEventWithLogging)
+            }
+            if (selectedItem == "all" || selectedItem == "keyboard") {
+                Keyboard(onEvent = onEventWithLogging)
+            }
         }
     }
 }
