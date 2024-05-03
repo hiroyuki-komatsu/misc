@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -28,6 +29,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -266,22 +269,25 @@ private class Event {
     var key: String = ""
     var dX: Int = 0
     var dY: Int = 0
+    var left: Boolean = false
     fun setKeyEvent(key: String): Event {
         type = "key"
         this.key = key
         return this
     }
 
-    fun setMouseEvent(x: Int, y: Int): Event {
+    fun setMouseEvent(dX: Int = 0, dY: Int = 0, left: Boolean = false): Event {
         type = "mouse"
-        this.dX = x
-        this.dY = y
+        this.dX = dX
+        this.dY = dY
+        this.left = left
         return this
     }
 }
 
 private class DebugLog {
-    private var logs: MutableList<String> = mutableListOf()
+    private var count: Int = 0
+    private var logs: MutableList<String> = mutableListOf("# count: $count")
 
     operator fun plusAssign(log: String) {
         logs += log
@@ -294,6 +300,8 @@ private class DebugLog {
     fun consume(): String {
         val log = logs.joinToString(separator = "\n")
         logs.clear()
+        count++
+        logs += "# count: $count"
         return log
     }
 }
@@ -433,7 +441,7 @@ class MainActivity : ComponentActivity() {
         return packet
     }
 
-    private fun createPacketForMouseMove(x: Int, y: Int): ByteArray {
+    private fun createPacketForMouseMove(x: Int, y: Int, left: Boolean): ByteArray {
         val packet = byteArrayOf(
             0x57,
             0xAB.toByte(),
@@ -441,7 +449,7 @@ class MainActivity : ComponentActivity() {
             0x05,  // CMD_SEND_MS_REL_DATA
             0x05,  // Length of data
             0x01,  // Always 0x01
-            0x00,  // [0..0, mid_btn, r_btn, l_btn]
+            (if (left) 0x01 else 0x00),  // [0..0, mid_btn, r_btn, l_btn]
             x.toByte(),  // Delta of x
             y.toByte(),  // Delta of y
             0x00,  // Delta of wheel
@@ -513,7 +521,7 @@ class MainActivity : ComponentActivity() {
             }
 
             "mouse" -> {
-                onMouseMove(event.dX, event.dY)
+                onMouseMove(event.dX, event.dY, event.left)
             }
 
             else -> {
@@ -545,7 +553,7 @@ class MainActivity : ComponentActivity() {
         Log.d("onKeyInput", logs.last())
     }
 
-    private fun onMouseMove(x: Int, y: Int) {
+    private fun onMouseMove(x: Int, y: Int, left: Boolean = false) {
         logs += "onMouseMove: ($x, $y)"
         Log.d("onMouseMove", logs.last())
 
@@ -559,8 +567,14 @@ class MainActivity : ComponentActivity() {
         val dataBits = 8
         port.setParameters(baudRate, dataBits, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
 
-        val packet: ByteArray = createPacketForMouseMove(x, y)
+        val packet: ByteArray = createPacketForMouseMove(x, y, left)
         moveMouse(port, packet)
+
+        if (left) {
+            // Reset click state
+            val resetPacket: ByteArray = createPacketForMouseMove(0, 0, false)
+            moveMouse(port, resetPacket)
+        }
 
         port.close()
         logs += "done"
@@ -879,19 +893,30 @@ private fun Keyboard(onEvent: (Event) -> Unit) {
 
 @Composable
 private fun TrackPad(onEvent: (Event) -> Unit) {
-    Box(
-        modifier = Modifier
-            .background(color = MaterialTheme.colorScheme.primaryContainer)
-            .fillMaxWidth(0.5f)
-            .fillMaxHeight(0.3f)
-            .pointerInput(Unit) {
-                detectDragGestures { change, offset ->
-                    change.consume()
-                    val event = Event().setMouseEvent(offset.x.toInt(), offset.y.toInt())
-                    onEvent(event)
+    val onDrag: (PointerInputChange, Offset) -> Unit = { change, offset ->
+        change.consume()
+        val event = Event().setMouseEvent(dX = offset.x.toInt(), dY = offset.y.toInt())
+        onEvent(event)
+    }
+    Row {
+        Box(
+            modifier = Modifier
+                .background(color = MaterialTheme.colorScheme.primaryContainer)
+                .fillMaxWidth(0.5f)
+                .fillMaxHeight(0.3f)
+                .pointerInput(Unit) {
+                    detectDragGestures(onDrag = onDrag)
                 }
+        )
+        Button(
+            onClick = {
+                val event = Event().setMouseEvent(left=true)
+                onEvent(event)
             }
-    )
+        ) {
+           Text("left")
+        }
+    }
 }
 
 @Preview(showBackground = true, device = "spec:parent=pixel_5")
@@ -901,7 +926,7 @@ fun LayersPreview() {
         Column {
             Layer({}, LAYOUT_DATA, LAYOUT_MAP)
             Layer({}, LAYOUT_DATA, LAYOUT_SHIFTED_MAP)
-            TrackPad({ "" })
+            TrackPad({})
         }
     }
 }
@@ -910,6 +935,6 @@ fun LayersPreview() {
 @Composable
 fun KeyboardPreview() {
     HIDEmulatorTheme {
-        Keyboard(onEvent = { "" })
+        Keyboard({})
     }
 }
