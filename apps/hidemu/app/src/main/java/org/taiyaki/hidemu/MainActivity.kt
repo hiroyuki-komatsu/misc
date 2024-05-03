@@ -18,16 +18,24 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -39,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
+import kotlinx.coroutines.launch
 import org.taiyaki.hidemu.ui.theme.HIDEmulatorTheme
 import kotlin.math.max
 
@@ -865,15 +874,57 @@ fun Layer(onClick: (String) -> Unit, layoutData: LayoutData, layoutMap: LayoutMa
 
 @Composable
 private fun MainView(onEvent: (Event) -> Unit) {
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    var selectedItem by remember { mutableStateOf("all") }
     val (message, setMessage) = remember { mutableStateOf("") }
     val onEventWithLogging: (Event) -> Unit = { event: Event ->
         onEvent(event)
         setMessage(logs.consume())
     }
-    Column {
-        TrackPad(onEvent = onEventWithLogging)
-        Keyboard(onEvent = onEventWithLogging)
-        DevLog(text = message)
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Text("HID Emulator", modifier = Modifier.padding(16.dp))
+                Divider()
+                NavigationDrawerItem(
+                    label = { Text(text = "Keyboard") },
+                    selected = (selectedItem == "keyboard"),
+                    onClick = {
+                        selectedItem = "keyboard"
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Track Pad") },
+                    selected = (selectedItem == "trackpad"),
+                    onClick = {
+                        selectedItem = "trackpad"
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "All") },
+                    selected = (selectedItem == "all"),
+                    onClick = {
+                        selectedItem = "all"
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                // ...other drawer items
+            }
+        }
+    ) {
+        Column {
+            if (selectedItem == "all" || selectedItem == "trackpad") {
+                TrackPad(onEvent = onEventWithLogging)
+            }
+            if (selectedItem == "all" || selectedItem == "keyboard") {
+                Keyboard(onEvent = onEventWithLogging)
+            }
+            DevLog(text = message)
+        }
     }
 }
 
@@ -953,3 +1004,4 @@ fun KeyboardPreview() {
         Keyboard({})
     }
 }
+
