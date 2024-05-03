@@ -61,7 +61,7 @@ import kotlin.math.max
 const val VENDOR_ID: Int = 0x1A86
 const val PRODUCT_ID: Int = 0x7523
 const val WRITE_WAIT_MILLIS: Int = 20
-const val READ_WAIT_MILLIS: Int = 30
+const val READ_WAIT_MILLIS: Int = 20
 
 const val KEY_A = 0x04 // Keyboard a and A
 const val KEY_B = 0x05 // Keyboard b and B
@@ -1057,7 +1057,7 @@ private fun MainView(onEvent: (Event) -> Unit) {
                 Keyboard(onEvent = onEventWithLogging)
             }
             if (selectedItem == "all" || selectedItem == "trackpad") {
-                Row(modifier = Modifier.requiredHeight(300.dp)) {
+                Row(modifier = Modifier.requiredHeight(400.dp)) {
                     Spacer(Modifier.weight(4.5f))
                     TrackPad(onEvent = onEventWithLogging, modifier = Modifier.weight(5f))
                     DevLog(text = message, modifier = Modifier.weight(5.5f))
