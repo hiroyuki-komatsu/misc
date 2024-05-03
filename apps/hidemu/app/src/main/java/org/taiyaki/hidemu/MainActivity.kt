@@ -280,9 +280,28 @@ private class Event {
     }
 }
 
+private class DebugLog {
+    private var logs: MutableList<String> = mutableListOf()
+
+    operator fun plusAssign(log: String) {
+        logs += log
+    }
+
+    fun last(): String {
+        return logs.last()
+    }
+
+    fun consume(): String {
+        val log = logs.joinToString(separator = "\n")
+        logs.clear()
+        return log
+    }
+}
+
+private var logs = DebugLog()
+
 class MainActivity : ComponentActivity() {
     private lateinit var manager: UsbManager
-    private var logs: MutableList<String> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -297,12 +316,6 @@ class MainActivity : ComponentActivity() {
             }
         }
         manager = getSystemService(Context.USB_SERVICE) as UsbManager
-    }
-
-    private fun consumeLog(): String {
-        val log = logs.joinToString(separator = "\n")
-        logs.clear()
-        return log
     }
 
     private fun getDeviceInfo(device: UsbDevice): String {
@@ -492,9 +505,9 @@ class MainActivity : ComponentActivity() {
         return port
     }
 
-    private fun onEvent(event: Event): String {
+    private fun onEvent(event: Event) {
         logs += "onEvent: ${event.type}"
-        return when (event.type) {
+        when (event.type) {
             "key" -> {
                 onKeyInput(event.key)
             }
@@ -506,18 +519,18 @@ class MainActivity : ComponentActivity() {
             else -> {
                 logs += "unknown event"
                 Log.d("onEvent", logs.last())
-                consumeLog()
             }
         }
     }
 
-    private fun onKeyInput(keyChar: String): String {
+    private fun onKeyInput(keyChar: String) {
         logs += "onKeyInput: $keyChar"
         Log.d("onKeyInput", keyChar)
 
         val port = openPort()
         if (port == null) {
-            return consumeLog()
+            logs += "port is null"
+            return
         }
 
         val baudRate = 9600
@@ -528,19 +541,18 @@ class MainActivity : ComponentActivity() {
         sendKey(port, keyDownPacket)
 
         port.close()
-        val msg = "done"
-        Log.d("onKeyInput", msg)
-        logs += msg
-        return consumeLog()
+        logs += "done"
+        Log.d("onKeyInput", logs.last())
     }
 
-    private fun onMouseMove(x: Int, y: Int): String {
+    private fun onMouseMove(x: Int, y: Int) {
         logs += "onMouseMove: ($x, $y)"
         Log.d("onMouseMove", logs.last())
 
         val port = openPort()
         if (port == null) {
-            return consumeLog()
+            logs += "port is null"
+            return
         }
 
         val baudRate = 9600
@@ -553,7 +565,6 @@ class MainActivity : ComponentActivity() {
         port.close()
         logs += "done"
         Log.d("onMouseMove", logs.last())
-        return consumeLog()
     }
 }
 
@@ -833,19 +844,15 @@ fun Layer(onClick: (String) -> Unit, layoutData: LayoutData, layoutMap: LayoutMa
 }
 
 @Composable
-private fun MainView(onEvent: (Event) -> String) {
+private fun MainView(onEvent: (Event) -> Unit) {
     val (message, setMessage) = remember { mutableStateOf("") }
-    val onType: (Event) -> Unit = { event: Event ->
-        val log = onEvent(event)
-        setMessage(log)
-    }
-    val onMove: (Event) -> Unit = { event: Event ->
-        val log = onEvent(event)
-        setMessage(log)
+    val onEventWithLogging: (Event) -> Unit = { event: Event ->
+        onEvent(event)
+        setMessage(logs.consume())
     }
     Column {
-        TrackPad(onEvent = onMove)
-        Keyboard(onEvent = onType)
+        TrackPad(onEvent = onEventWithLogging)
+        Keyboard(onEvent = onEventWithLogging)
         Text(text = message)
     }
 }
