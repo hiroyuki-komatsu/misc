@@ -264,6 +264,10 @@ val KEYCODE_MAP: Map<String, Pair<Int, Int>> = mapOf(
     "RIGHTSHIFT" to Pair(0x00, KEY_RIGHTSHIFT),
     "LANG1" to Pair(0x00, KEY_LANG1),
     "LANG2" to Pair(0x00, KEY_LANG2),
+    "X_COPY" to Pair(0x01, KEY_C),
+    "X_PASTE" to Pair(0x01, KEY_V),
+    "X_UNDO" to Pair(0x01, KEY_Z),
+    "X_REDO" to Pair(0x03, KEY_Z),
 )
 
 val CODEMAP: Map<Int, String> = mapOf(
@@ -693,6 +697,10 @@ val LAYOUT_MAP: LayoutMap = mapOf(
     "POS_SPACE" to listOf("", "SPACE"),
     "POS_LANG1" to listOf("かな", "LANG1"),
     "POS_LANG2" to listOf("英数", "LANG2"),
+    "POS_COPY" to listOf("copy", "X_COPY"),
+    "POS_PASTE" to listOf("paste", "X_PASTE"),
+    "POS_UNDO" to listOf("undo", "X_UNDO"),
+    "POS_REDO" to listOf("redo", "X_REDO"),
 )
 
 val LAYOUT_SHIFTED_MAP: LayoutMap = mapOf(
@@ -826,9 +834,11 @@ val LAYOUT_DATA: LayoutData = listOf(
         Pair("", 0.75f),
         Pair("POS_UP", 1f),
     ), listOf(
-        Pair("", 2.75f),
-        Pair("POS_", 1f),
-        Pair("POS_", 1f),
+        Pair("POS_COPY", 1f),
+        Pair("POS_PASTE", 1f),
+        Pair("POS_UNDO", 1f),
+        Pair("POS_REDO", 1f),
+        Pair("", 0.75f),
         Pair("POS_LANG2", 1f),
         Pair("POS_SPACE", 2.5f),
         Pair("POS_LANG1", 1f),
@@ -982,6 +992,57 @@ private fun TrackPad(onEvent: (Event) -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun GrabMouse(onEvent: (Event) -> Unit, modifier: Modifier = Modifier) {
+    val onDrag: (PointerInputChange, Offset) -> Unit = { change, offset ->
+        change.consume()
+        val event = Event().setMouseEvent(dX = offset.x.toInt(), dY = offset.y.toInt())
+        onEvent(event)
+    }
+    Column(
+        modifier = modifier
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(4f)
+                .background(color = MaterialTheme.colorScheme.primaryContainer)
+                .fillMaxWidth(1f)
+                .fillMaxHeight(1f)
+                .pointerInput(Unit) {
+                    detectDragGestures(onDrag = onDrag)
+                },
+        )
+        Row(
+            modifier = Modifier.weight(1f)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    val event = Event().setMouseEvent(button1 = true)
+                    onEvent(event)
+                },
+                modifier = Modifier.weight(1.75f).fillMaxHeight(),
+                shape = MaterialTheme.shapes.extraSmall,
+            ) {}
+            OutlinedButton(
+                onClick = {
+                    val event = Event().setMouseEvent(button3 = true)
+                    onEvent(event)
+                },
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                shape = MaterialTheme.shapes.extraSmall,
+            ) {}
+            OutlinedButton(
+                onClick = {
+                    val event = Event().setMouseEvent(button2 = true)
+                    onEvent(event)
+                },
+                modifier = Modifier.weight(1.75f).fillMaxHeight(),
+                shape = MaterialTheme.shapes.extraSmall,
+            ) {}
+        }
+    }
+}
+
+@Composable
 private fun DevLog(text: String, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier
@@ -1007,7 +1068,7 @@ private fun MainView(onEvent: (Event) -> Unit) {
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var selectedItem by remember { mutableStateOf("all") }
+    var selectedItem by remember { mutableStateOf("default") }
     val (message, setMessage) = remember { mutableStateOf("") }
     val onEventWithLogging: (Event) -> Unit = { event: Event ->
         onEvent(event)
@@ -1019,6 +1080,14 @@ private fun MainView(onEvent: (Event) -> Unit) {
             ModalDrawerSheet {
                 Text("HID Emulator", modifier = Modifier.padding(16.dp))
                 Divider()
+                NavigationDrawerItem(
+                    label = { Text(text = "default") },
+                    selected = (selectedItem == "default"),
+                    onClick = {
+                        selectedItem = "default"
+                        scope.launch { drawerState.close() }
+                    }
+                )
                 NavigationDrawerItem(
                     label = { Text(text = "Keyboard") },
                     selected = (selectedItem == "keyboard"),
@@ -1035,11 +1104,12 @@ private fun MainView(onEvent: (Event) -> Unit) {
                         scope.launch { drawerState.close() }
                     }
                 )
+                Divider()
                 NavigationDrawerItem(
-                    label = { Text(text = "All") },
-                    selected = (selectedItem == "all"),
+                    label = { Text(text = "Grab Mouse") },
+                    selected = (selectedItem == "grab_mouse"),
                     onClick = {
-                        selectedItem = "all"
+                        selectedItem = "grab_mouse"
                         scope.launch { drawerState.close() }
                     }
                 )
@@ -1053,15 +1123,18 @@ private fun MainView(onEvent: (Event) -> Unit) {
             if (selectedItem == "keyboard") {
                 DevLog(text = message, modifier = Modifier.height(100.dp))
             }
-            if (selectedItem == "all" || selectedItem == "keyboard") {
+            if (selectedItem == "default" || selectedItem == "keyboard") {
                 Keyboard(onEvent = onEventWithLogging)
             }
-            if (selectedItem == "all" || selectedItem == "trackpad") {
+            if (selectedItem == "default" || selectedItem == "trackpad") {
                 Row(modifier = Modifier.requiredHeight(400.dp)) {
                     Spacer(Modifier.weight(4.5f))
                     TrackPad(onEvent = onEventWithLogging, modifier = Modifier.weight(5f))
                     DevLog(text = message, modifier = Modifier.weight(5.5f))
                 }
+            }
+            if (selectedItem == "grab_mouse") {
+                GrabMouse(onEvent = onEventWithLogging)
             }
         }
     }
